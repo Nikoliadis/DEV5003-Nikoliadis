@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Museum{% endblock %}
+
+{% block content %}
+    <header>
+        <h1>Upcoming Events</h1>
+    </header>
+
+    <div class="container">
+        {% for event in upcoming_events %}
+            <div class="card">
+                <h2 class="card-title">{{ event.title }}</h2>
+                <p class="card-description">{{ event.date }} - {{ event.description }}</p>
+                <a href="/events/{{ event.id }}" style="text-decoration: none; color: #333; font-weight: bold;">Learn More</a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

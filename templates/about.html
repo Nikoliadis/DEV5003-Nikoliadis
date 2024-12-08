@@ -1,0 +1,72 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Museum</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .about-section {
+            padding: 20px;
+            margin: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            background-color: #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        a:hover {
+            background-color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>About the Museum</h1>
+    </header>
+
+    <main>
+        <section class="about-section">
+            <h2>Our Mission</h2>
+            <p>{{ museum_overview }}</p>
+
+            <!-- Link back to Home -->
+            <a href="{{ url_for('home') }}">Back to Home</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Museum Name - All Rights Reserved</p>
+    </footer>
+</body>
+</html>
