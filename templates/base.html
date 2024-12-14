@@ -1,41 +1,35 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Museum</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Museum</title>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <h1>Museum</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('about') }}">About Us</a></li>
-                <li><a href="{{ url_for('news') }}">News</a></li>
-                <li><a href="{{ url_for('events') }}">Events</a></li>
-                <li><a href="{{ url_for('exhibits') }}">Exhibits</a></li>
-                <li><a href="{{ url_for('services') }}">Services</a></li>
-                <li><a href="{{ url_for('feedback') }}">Feedback</a></li>
-                {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('profile') }}">Profile</a></li>
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}">Register</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </header>
-
-    <main class="grid-container">
-        {% block content %}{% endblock %}
-    </main>
-
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}" class="{{ 'active' if request.path == url_for('home') else '' }}">Home</a></li>
+            <li><a href="{{ url_for('about') }}" class="{{ 'active' if request.path == url_for('about') else '' }}">About Us</a></li>
+            <li><a href="{{ url_for('news') }}" class="{{ 'active' if request.path == url_for('news') else '' }}">News</a></li>
+            <li><a href="{{ url_for('events') }}" class="{{ 'active' if request.path == url_for('events') else '' }}">Events</a></li>
+            <li><a href="{{ url_for('exhibits') }}" class="{{ 'active' if request.path == url_for('exhibits') else '' }}">Exhibits</a></li>
+            <li><a href="{{ url_for('services') }}" class="{{ 'active' if request.path == url_for('services') else '' }}">Services</a></li>
+            <li><a href="{{ url_for('feedback') }}" class="{{ 'active' if request.path == url_for('feedback') else '' }}">Feedback</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('profile') }}" class="{{ 'active' if request.path == url_for('profile') else '' }}">Profile</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" class="{{ 'active' if request.path == url_for('login') else '' }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}" class="{{ 'active' if request.path == url_for('register') else '' }}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    
+    {% block content %}{% endblock %}
+    
     <footer>
-        <p>&copy; 2024 Museum. All rights reserved.</p>
+        <p>© 2024 Museum Website. All rights reserved.</p>
     </footer>
 </body>
 </html>
