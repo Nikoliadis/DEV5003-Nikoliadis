@@ -1,47 +1,25 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import datetime
+from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///museum.db'
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'your_secret_key'
+
 db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+migrate = Migrate(app, db)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-    bookings = db.relationship('Booking', backref='user', lazy=True)
-    feedbacks = db.relationship('Feedback', backref='user', lazy=True)
-
-class Booking(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    visit_date = db.Column(db.Date, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-class Feedback(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)
-
-class Event(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    description = db.Column(db.Text, nullable=False)
-
-class News(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    date_posted = db.Column(db.Date, default=datetime.datetime.utcnow)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -49,68 +27,73 @@ def load_user(user_id):
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    if current_user.is_authenticated:
+        featured_items = [
+            {'title': 'Ancient Vase', 'image': 'https://static01.nyt.com/images/2017/08/01/nyregion/01-SEIZE-1/01-SEIZE-1-superJumbo.jpg', 'description': 'A rare ancient vase from the 4th century.'},
+            {'title': 'Renaissance Painting', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYQzhGI2Jnk42d8TP2E6D1nd5k3q3BqRpf7Q&s', 'description': 'A beautiful painting from the Renaissance period.'}
+        ]
+        return render_template('home.html', featured_items=featured_items)
+    else:
+        return render_template('home.html')
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+    if request.method == 'POST':
+        login_input = request.form.get('login_input')
+        password = request.form.get('password')
+
+        if not login_input or not password:
+            flash('Please enter both username/email and password.', 'danger')
+            return redirect(url_for('login'))
+
+        user = User.query.filter((User.username == login_input) | (User.email == login_input)).first()
+
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('profile'))
         else:
+            flash('Login Unsuccessful. Please check username/email and password.', 'danger')
             return redirect(url_for('login'))
-    return render_template("login.html")
 
-@app.route("/register", methods=["GET", "POST"])
+    return render_template('login.html')
+
+@app.route("/register", methods=['GET', 'POST'])
 def register():
-    if request.method == "POST":
-        username = request.form['username']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
-        new_user = User(username=username, email=email, password=password)
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not username or not email or not password:
+            flash('Please fill in all fields.', 'danger')
+            return redirect(url_for('register'))
+
+        existing_user = User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first()
+
+        if existing_user:
+            flash('Username or Email already exists. Please choose a different one.', 'danger')
+            return redirect(url_for('register'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=username, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+
+        flash('Registration Successful! Please log in.', 'success')
         return redirect(url_for('login'))
-    return render_template("register.html")
+
+    return render_template('register.html')
 
 @app.route("/profile")
 @login_required
 def profile():
     return render_template('profile.html')
 
-@app.route("/book_visit", methods=["GET", "POST"])
+@app.route("/logout")
 @login_required
-def book_visit():
-    if request.method == "POST":
-        visit_date = request.form['visit_date']
-        new_booking = Booking(visit_date=datetime.datetime.strptime(visit_date, '%Y-%m-%d').date(), user_id=current_user.id)
-        db.session.add(new_booking)
-        db.session.commit()
-        return redirect(url_for('profile'))
-    return render_template('book_visit.html')
-
-@app.route("/feedback/<int:booking_id>", methods=["GET", "POST"])
-@login_required
-def feedback(booking_id):
-    if request.method == "POST":
-        content = request.form['content']
-        new_feedback = Feedback(content=content, user_id=current_user.id, booking_id=booking_id)
-        db.session.add(new_feedback)
-        db.session.commit()
-        return redirect(url_for('profile'))
-    return render_template('feedback.html', booking_id=booking_id)
-
-@app.route("/admin")
-@login_required
-def admin():
-    if current_user.is_admin:
-        events = Event.query.all()
-        news = News.query.all()
-        return render_template("admin.html", events=events, news=news)
+def logout():
+    logout_user()
     return redirect(url_for('home'))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)

@@ -1,24 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Museum{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-    <header>
-        <h1>Welcome to the Museum!</h1>
-    </header>
+<h1>Welcome to the Museum</h1>
+<p>Discover the history and art of our museum.</p>
 
-    <main>
-        <section>
-            <h2>Featured Items</h2>
-            <div class="container">
-                {% for item in featured_items %}
-                    <div class="card">
-                        <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%; height:200px; object-fit: cover; border-radius: 10px;">
-                        <h2 class="card-title">{{ item.title }}</h2>
-                        <p class="card-description">{{ item.description }}</p>
-                    </div>
-                {% endfor %}
+{% if current_user.is_authenticated %}
+    <h2>Featured Items</h2>
+    <div>
+        {% for item in featured_items %}
+            <div>
+                <h3>{{ item.title }}</h3>
+                <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100px; height:150px;">
+                <p>{{ item.description }}</p>
             </div>
-        </section>
-    </main>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Please log in to see featured items.</p>
+{% endif %}
 {% endblock %}
