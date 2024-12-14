@@ -28,10 +28,10 @@ def load_user(user_id):
 @app.route("/")
 def home():
     featured_items = [
-        {'title': 'Ancient Vase', 'image': 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Ancient_vase_4th_century.jpg', 'description': 'A rare ancient vase from the 4th century.'},
-        {'title': 'Renaissance Painting', 'image': 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Leonardo_da_Vinci_-_The_Lady_with_an_ERMINE.jpg', 'description': 'A beautiful painting from the Renaissance period.'},
-        {'title': 'Ancient Sculpture', 'image': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Ancient_Roman_Sculpture.jpg', 'description': 'A rare sculpture from Ancient Rome.'},
-        {'title': 'Impressionist Artwork', 'image': 'https://upload.wikimedia.org/wikipedia/commons/9/97/Impression_Sunrise.jpg', 'description': 'A beautiful painting from the Impressionist era.'}
+        {'title': 'Ancient Vase', 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image', 'description': 'A rare ancient vase from the 4th century.'},
+        {'title': 'Renaissance Painting', 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691', 'description': 'A beautiful painting from the Renaissance period.'},
+        {'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format', 'description': 'A rare sculpture from Ancient Rome.'},
+        {'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'}
     ]
     
     if current_user.is_authenticated:
