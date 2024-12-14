@@ -1,23 +1,13 @@
-{% extends "base.html" %}
-
-{% block title %}Home{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-<h1>Welcome to the Museum</h1>
-<p>Discover the history and art of our museum.</p>
-
-{% if current_user.is_authenticated %}
-    <h2>Featured Items</h2>
-    <div>
-        {% for item in featured_items %}
-            <div>
-                <h3>{{ item.title }}</h3>
-                <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100px; height:150px;">
-                <p>{{ item.description }}</p>
-            </div>
-        {% endfor %}
+    <div class="hero">
+        <h1>Welcome to the Museum</h1>
+        <p>Explore the rich history and timeless art.</p>
     </div>
-{% else %}
-    <p>Please log in to see featured items.</p>
-{% endif %}
+
+    <div class="featured-items">
+        <h2>Featured Items</h2>
+        {% include 'grids.html' %}
+    </div>
 {% endblock %}

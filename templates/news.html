@@ -1,19 +1,17 @@
-{% extends "base.html" %}
-
-{% block title %}News{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-    <header>
-        <h1>Latest News</h1>
-    </header>
-
-    <div class="container">
-        {% for news_item in news_items %}
-            <div class="card">
-                <h2 class="card-title">{{ news_item.title }}</h2>
-                <p class="card-description">{{ news_item.date }} - {{ news_item.description }}</p>
-                <a href="/news/{{ news_item.id }}" style="text-decoration: none; color: #333; font-weight: bold;">Read More</a>
-            </div>
-        {% endfor %}
+<div class="news-section">
+    <h2>Latest News</h2>
+    <div class="grid">
+        <div class="grid-item">
+            <h3>New Acquisitions</h3>
+            <p>We have added new artworks to our collection.</p>
+        </div>
+        <div class="grid-item">
+            <h3>Art Talk on Ancient Art</h3>
+            <p>Join our next event to explore ancient art!</p>
+        </div>
     </div>
+</div>
 {% endblock %}

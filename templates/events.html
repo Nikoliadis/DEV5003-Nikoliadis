@@ -1,19 +1,17 @@
-{% extends "base.html" %}
-
-{% block title %}Events - Museum{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-    <header>
-        <h1>Upcoming Events</h1>
-    </header>
-
-    <div class="container">
-        {% for event in upcoming_events %}
-            <div class="card">
-                <h2 class="card-title">{{ event.title }}</h2>
-                <p class="card-description">{{ event.date }} - {{ event.description }}</p>
-                <a href="/events/{{ event.id }}" style="text-decoration: none; color: #333; font-weight: bold;">Learn More</a>
-            </div>
-        {% endfor %}
+<div class="events-section">
+    <h2>Upcoming Events</h2>
+    <div class="grid">
+        <div class="grid-item">
+            <h3>Art Talk with Dr. John Doe</h3>
+            <p>Join us for an insightful discussion on Renaissance art.</p>
+        </div>
+        <div class="grid-item">
+            <h3>Special Exhibition Opening</h3>
+            <p>Discover the world of modern art in our latest exhibition.</p>
+        </div>
     </div>
+</div>
 {% endblock %}

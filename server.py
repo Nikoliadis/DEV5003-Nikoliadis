@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'your_secret_key'
+app.secret_key = 'laichi'
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -15,11 +15,11 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-class User(UserMixin, db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -27,11 +27,14 @@ def load_user(user_id):
 
 @app.route("/")
 def home():
+    featured_items = [
+        {'title': 'Ancient Vase', 'image': 'https://static01.nyt.com/images/2017/08/01/nyregion/01-SEIZE-1/01-SEIZE-1-superJumbo.jpg', 'description': 'A rare ancient vase from the 4th century.'},
+        {'title': 'Renaissance Painting', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYQzhGI2Jnk42d8TP2E6D1nd5k3q3BqRpf7Q&s', 'description': 'A beautiful painting from the Renaissance period.'},
+        {'title': 'Ancient Sculpture', 'image': 'https://upload.wikimedia.org/wikipedia/commons/c/cc/Ancient_Roman_Sculpture.jpg', 'description': 'A rare sculpture from Ancient Rome.'},
+        {'title': 'Impressionist Artwork', 'image': 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Impressionist_Painting.jpg', 'description': 'A beautiful painting from the Impressionist era.'}
+    ]
+    
     if current_user.is_authenticated:
-        featured_items = [
-            {'title': 'Ancient Vase', 'image': 'https://static01.nyt.com/images/2017/08/01/nyregion/01-SEIZE-1/01-SEIZE-1-superJumbo.jpg', 'description': 'A rare ancient vase from the 4th century.'},
-            {'title': 'Renaissance Painting', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYQzhGI2Jnk42d8TP2E6D1nd5k3q3BqRpf7Q&s', 'description': 'A beautiful painting from the Renaissance period.'}
-        ]
         return render_template('home.html', featured_items=featured_items)
     else:
         return render_template('home.html')
@@ -50,7 +53,7 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for('profile'))
+            return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check username/email and password.', 'danger')
             return redirect(url_for('login'))
@@ -84,16 +87,40 @@ def register():
 
     return render_template('register.html')
 
-@app.route("/profile")
+@app.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html')
+    return render_template('profile.html', user=current_user)
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+@app.route("/about")
+def about():
+    return render_template('about.html')
+
+@app.route("/news")
+def news():
+    return render_template('news.html')
+
+@app.route("/events")
+def events():
+    return render_template('events.html')
+
+@app.route("/exhibits")
+def exhibits():
+    return render_template('exhibits.html')
+
+@app.route("/services")
+def services():
+    return render_template('services.html')
+
+@app.route("/feedback")
+def feedback():
+    return render_template('feedback.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

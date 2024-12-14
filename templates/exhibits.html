@@ -1,20 +1,19 @@
-{% extends "base.html" %}
-
-{% block title %}Exhibits - Museum{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-    <header>
-        <h1>Our Exhibits</h1>
-    </header>
-
-    <div class="container">
-        {% for exhibit in exhibits %}
-            <div class="card">
-                <img src="{{ exhibit.image }}" alt="{{ exhibit.title }}" style="width:100%; height:200px; object-fit: cover; border-radius: 10px;">
-                <h2 class="card-title">{{ exhibit.title }}</h2>
-                <p class="card-description">{{ exhibit.description }}</p>
-                <a href="/exhibits/{{ exhibit.id }}" style="text-decoration: none; color: #333; font-weight: bold;">Learn More</a>
-            </div>
-        {% endfor %}
+<div class="exhibits-section">
+    <h2>Our Exhibits</h2>
+    <p>Discover the fascinating art and history displayed in our exhibits.</p>
+    <!-- Example grid or content -->
+    <div class="grid">
+        <div class="grid-item">
+            <h3>Exhibit 1: Ancient Artifacts</h3>
+            <p>A collection of rare ancient artifacts from various civilizations.</p>
+        </div>
+        <div class="grid-item">
+            <h3>Exhibit 2: Renaissance Masterpieces</h3>
+            <p>Explore the finest paintings and sculptures from the Renaissance era.</p>
+        </div>
     </div>
+</div>
 {% endblock %}
