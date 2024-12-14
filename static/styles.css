@@ -76,18 +76,30 @@ body {
 nav {
     background-color: #333;
     color: white;
-    padding: 15px 30px;
+    padding: 10px 30px;
+    text-align: center;
 }
 
-nav a {
-    color: white;
+.navbar {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar li {
+    margin: 0 20px;
+}
+
+.navbar a {
     text-decoration: none;
-    margin-right: 20px;
+    color: white;
     font-size: 16px;
 }
 
-nav a:hover {
-    text-decoration: underline;
+.navbar a:hover {
+    color: #ddd;
 }
 
 .museum-info, .news-section, .events-section, .exhibits-section, .services-section, .feedback-section {

@@ -23,21 +23,22 @@ class User(db.Model, UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 @app.route("/")
 def home():
     featured_items = [
-        {'title': 'Ancient Vase', 'image': 'https://static01.nyt.com/images/2017/08/01/nyregion/01-SEIZE-1/01-SEIZE-1-superJumbo.jpg', 'description': 'A rare ancient vase from the 4th century.'},
-        {'title': 'Renaissance Painting', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYQzhGI2Jnk42d8TP2E6D1nd5k3q3BqRpf7Q&s', 'description': 'A beautiful painting from the Renaissance period.'},
-        {'title': 'Ancient Sculpture', 'image': 'https://upload.wikimedia.org/wikipedia/commons/c/cc/Ancient_Roman_Sculpture.jpg', 'description': 'A rare sculpture from Ancient Rome.'},
-        {'title': 'Impressionist Artwork', 'image': 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Impressionist_Painting.jpg', 'description': 'A beautiful painting from the Impressionist era.'}
+        {'title': 'Ancient Vase', 'image': 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Ancient_vase_4th_century.jpg', 'description': 'A rare ancient vase from the 4th century.'},
+        {'title': 'Renaissance Painting', 'image': 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Leonardo_da_Vinci_-_The_Lady_with_an_ERMINE.jpg', 'description': 'A beautiful painting from the Renaissance period.'},
+        {'title': 'Ancient Sculpture', 'image': 'https://upload.wikimedia.org/wikipedia/commons/a/a5/Ancient_Roman_Sculpture.jpg', 'description': 'A rare sculpture from Ancient Rome.'},
+        {'title': 'Impressionist Artwork', 'image': 'https://upload.wikimedia.org/wikipedia/commons/9/97/Impression_Sunrise.jpg', 'description': 'A beautiful painting from the Impressionist era.'}
     ]
     
     if current_user.is_authenticated:
         return render_template('home.html', featured_items=featured_items)
     else:
         return render_template('home.html')
+
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
