@@ -10,23 +10,25 @@
         <h2>Featured Items</h2>
         <div class="grid-container">
             {% for item in featured_items %}
-                <div class="grid-item">
-                    {% if current_user.is_authenticated %}
-                        <!-- If user is logged in, show image with a link to a detail page (this is just an example, you can change the link) -->
-                        <a href="{{ url_for('item_detail', item_id=item.id) }}">
-                            <img src="{{ item.image }}" alt="{{ item.title }}">
-                            <h3>{{ item.title }}</h3>
-                            <p>{{ item.description }}</p>
-                        </a>
-                    {% else %}
-                        <!-- If user is not logged in, show image and redirect to login page -->
-                        <a href="{{ url_for('login') }}">
-                            <img src="{{ item.image }}" alt="{{ item.title }}">
-                            <h3>{{ item.title }}</h3>
-                            <p>{{ item.description }}</p>
-                        </a>
-                    {% endif %}
-                </div>
+            <div class="grid-item">
+                {% if current_user.is_authenticated %}
+                    <!-- If user is logged in, show image with a link to a detail page (this is just an example, you can change the link) -->
+                    <a href="{{ url_for('item_detail', item_id=item.id) }}">
+                        <img src="{{ item.image }}" alt="{{ item.title }}">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                    </a>
+                {% else %}
+                    <!-- If user is not logged in, show image with a login prompt -->
+                    <a href="{{ url_for('login') }}">
+                        <img src="{{ item.image }}" alt="{{ item.title }}">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                    </a>
+                    <p>Please log in to view more details.</p>
+                {% endif %}
+            </div>
+            
             {% endfor %}
         </div>
     </div>

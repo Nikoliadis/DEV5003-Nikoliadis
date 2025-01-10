@@ -189,14 +189,14 @@ def buy_ticket():
     flash(f"Successfully purchased {quantity} ticket(s) for {item['title']}! Total cost: ${total_cost}", 'success')
     return redirect(url_for('home'))
 
-@app.route("/checkout/<int:item_id>", methods=['GET', 'POST'])
+@app.route("/add_to_cart/<int:item_id>", methods=['POST'])
 @login_required
-def checkout(item_id):
+def add_to_cart(item_id):
     items = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
+        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
     }
 
     item = items.get(item_id)
@@ -204,32 +204,40 @@ def checkout(item_id):
         flash("Item not found!", 'danger')
         return redirect(url_for('home'))
 
-    if request.method == 'POST':
-        quantity = int(request.form.get('quantity'))
-        payment_method = request.form.get('payment_method')
-        address = None
-        total_cost = item['price'] * quantity  # Calculate total cost
+    # Get quantity from the form
+    quantity = int(request.form.get('quantity'))
+    
+    # Add item to session
+    cart = session.get('cart', [])
+    cart.append({'item_id': item_id, 'quantity': quantity})
+    session['cart'] = cart  # Save the cart in the session
 
-        if payment_method == 'credit_card':
-            address = request.form.get('address')
+    flash(f"Added {quantity} of {item['title']} to your cart!", 'success')
+    return redirect(url_for('cart'))  # Redirect to the cart page
 
-        # Create ticket order with total cost
-        new_ticket = Ticket(
-            user_id=current_user.id,
-            item_id=item_id,
-            quantity=quantity,
-            payment_method=payment_method,
-            address=address,
-            total_cost=total_cost  # Store total cost
-        )
+@app.route("/cart")
+@login_required
+def cart():
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+    }
 
-        db.session.add(new_ticket)
-        db.session.commit()
+    cart = session.get('cart', [])
+    cart_items = []
+    total_price = 0
 
-        flash('Your order has been placed successfully!', 'success')
-        return redirect(url_for('order_confirmation', ticket_id=new_ticket.id))
+    for cart_item in cart:
+        item = items.get(cart_item['item_id'])
+        if item:
+            item['quantity'] = cart_item['quantity']
+            item['total_price'] = item['price'] * cart_item['quantity']
+            cart_items.append(item)
+            total_price += item['total_price']
 
-    return render_template('checkout.html', item=item)
+    return render_template('cart.html', cart_items=cart_items, total_price=total_price)
 
 @app.route('/place_order', methods=['POST'])
 def place_order():
@@ -264,11 +272,62 @@ def process_checkout():
     # Add logic to process payment or record data
     return "Order placed successfully!"
 
+@app.route("/checkout", methods=['GET', 'POST'])
+@login_required
+def checkout():
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+    }
+
+    cart = session.get('cart', [])
+    cart_items = []
+    total_price = 0
+
+    for cart_item in cart:
+        item = items.get(cart_item['item_id'])
+        if item:
+            item['quantity'] = cart_item['quantity']
+            item['total_price'] = item['price'] * cart_item['quantity']
+            cart_items.append(item)
+            total_price += item['total_price']
+
+    if request.method == 'POST':
+        payment_method = request.form.get('payment_method')
+
+        # Create a new Ticket record in the database
+        for cart_item in cart:
+            item_id = cart_item['item_id']
+            quantity = cart_item['quantity']
+            total_cost = items[item_id]['price'] * quantity
+            new_ticket = Ticket(
+                user_id=current_user.id,
+                item_id=item_id,
+                quantity=quantity,
+                payment_method=payment_method,
+                total_cost=total_cost,
+            )
+            db.session.add(new_ticket)
+
+        db.session.commit()
+
+        flash("Order placed successfully!", 'success')
+        session.pop('cart', None)  # Clear the cart after the order is placed
+        return redirect(url_for('home'))
+
+    return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
+
 
 @app.route("/order_confirmation/<int:ticket_id>")
 @login_required
 def order_confirmation(ticket_id):
     ticket = Ticket.query.get(ticket_id)
+    if not ticket or ticket.user_id != current_user.id:
+        flash("Order not found!", 'danger')
+        return redirect(url_for('home'))
+
     items = {
         1: {'title': 'Ancient Vase', 'price': 25},
         2: {'title': 'Renaissance Painting', 'price': 30},
@@ -278,6 +337,7 @@ def order_confirmation(ticket_id):
 
     item = items.get(ticket.item_id)
     return render_template('order_confirmation.html', ticket=ticket, item=item)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
