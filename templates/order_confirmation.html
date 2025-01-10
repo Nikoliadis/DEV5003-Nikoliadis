@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Order Confirmation</h1>
+    <p>Thank you for your purchase, {{ current_user.username }}!</p>
+    
+    <!-- Item and Quantity Details -->
+    <p>You purchased {{ ticket.quantity }} ticket(s) for "{{ item.title }}".</p>
+    <p>Total Cost: ${{ ticket.total_cost }}</p>
+
+    <!-- Payment Method and Shipping Address (if credit card) -->
+    <p>Payment Method: {{ ticket.payment_method }}</p>
+
+    {% if ticket.payment_method == 'credit_card' %}
+    <p>Shipping Address: {{ ticket.address }}</p>
+    {% endif %}
+
+    <!-- Back to Home Button -->
+    <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}

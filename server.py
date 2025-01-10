@@ -15,11 +15,22 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+# Models for User and Tickets (To track the purchases)
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+
+class Ticket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    item_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    address = db.Column(db.String(255), nullable=True)  # Only for credit card payments
+    total_cost = db.Column(db.Float, nullable=False)  # Add total cost
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -28,14 +39,12 @@ def load_user(user_id):
 @app.route("/")
 def home():
     featured_items = [
-        {'title': 'Ancient Vase', 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image', 'description': 'A rare ancient vase from the 4th century.'},
-        {'title': 'Renaissance Painting', 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691', 'description': 'A beautiful painting from the Renaissance period.'},
-        {'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format', 'description': 'A rare sculpture from Ancient Rome.'},
-        {'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'}
+        {'id': 1, 'title': 'Ancient Vase', 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image', 'description': 'A rare ancient vase from the 4th century.'},
+        {'id': 2, 'title': 'Renaissance Painting', 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691', 'description': 'A beautiful painting from the Renaissance period.'},
+        {'id': 3, 'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format', 'description': 'A rare sculpture from Ancient Rome.'},
+        {'id': 4, 'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'}
     ]
-    
     return render_template('home.html', featured_items=featured_items)
-
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -119,6 +128,121 @@ def services():
 @app.route("/feedback")
 def feedback():
     return render_template('feedback.html')
+
+@app.route("/item/<int:item_id>")
+@login_required
+def item_detail(item_id):
+    items = {
+        1: {
+            'title': 'Ancient Vase',
+            'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
+            'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
+            'price': 25,
+        },
+        2: {
+            'title': 'Renaissance Painting',
+            'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
+            'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
+            'price': 30,
+        },
+        3: {
+            'title': 'Ancient Sculpture',
+            'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
+            'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
+            'price': 20,
+        },
+        4: {
+            'title': 'Impressionist Artwork',
+            'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
+            'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
+            'price': 15,
+        },
+    }
+
+    item = items.get(item_id)
+    if not item:
+        flash("Item not found!", 'danger')
+        return redirect(url_for('home'))
+
+    return render_template('item_detail.html', item=item, item_id=item_id)
+
+@app.route("/buy_ticket", methods=['POST'])
+@login_required
+def buy_ticket():
+    item_id = request.form.get('item_id')
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
+    }
+
+    item = items.get(int(item_id))  # Ensure the item_id is treated as an integer
+    if not item:
+        flash("Item not found!", 'danger')
+        return redirect(url_for('home'))
+
+    quantity = int(request.form.get('quantity'))
+    total_cost = item['price'] * quantity
+
+    flash(f"Successfully purchased {quantity} ticket(s) for {item['title']}! Total cost: ${total_cost}", 'success')
+    return redirect(url_for('home'))
+
+@app.route("/checkout/<int:item_id>", methods=['GET', 'POST'])
+@login_required
+def checkout(item_id):
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
+    }
+
+    item = items.get(item_id)
+    if not item:
+        flash("Item not found!", 'danger')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        quantity = int(request.form.get('quantity'))
+        payment_method = request.form.get('payment_method')
+        address = None
+        total_cost = item['price'] * quantity  # Calculate total cost
+
+        if payment_method == 'credit_card':
+            address = request.form.get('address')
+
+        # Create ticket order with total cost
+        new_ticket = Ticket(
+            user_id=current_user.id,
+            item_id=item_id,
+            quantity=quantity,
+            payment_method=payment_method,
+            address=address,
+            total_cost=total_cost  # Store total cost
+        )
+
+        db.session.add(new_ticket)
+        db.session.commit()
+
+        flash('Your order has been placed successfully!', 'success')
+        return redirect(url_for('order_confirmation', ticket_id=new_ticket.id))
+
+    return render_template('checkout.html', item=item)
+
+@app.route("/order_confirmation/<int:ticket_id>")
+@login_required
+def order_confirmation(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
+    }
+
+    item = items.get(ticket.item_id)
+    return render_template('order_confirmation.html', ticket=ticket, item=item)
 
 if __name__ == '__main__':
     app.run(debug=True)
