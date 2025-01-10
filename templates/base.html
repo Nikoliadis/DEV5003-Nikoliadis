@@ -6,37 +6,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Museum</title>
 </head>
-
 <body>
     <nav>
         <ul>
-            <li><a href="{{ url_for('home') }}" class="{{ 'active' if request.path == url_for('home') else '' }}">Home</a></li>
-            <li><a href="{{ url_for('news') }}" class="{{ 'active' if request.path == url_for('news') else '' }}">News</a></li>
-            <li><a href="{{ url_for('events') }}" class="{{ 'active' if request.path == url_for('events') else '' }}">Events</a></li>
-            <li><a href="{{ url_for('exhibits') }}" class="{{ 'active' if request.path == url_for('exhibits') else '' }}">Exhibits</a></li>
-            <li><a href="{{ url_for('services') }}" class="{{ 'active' if request.path == url_for('services') else '' }}">Services</a></li>
-            <li><a href="{{ url_for('feedback') }}" class="{{ 'active' if request.path == url_for('feedback') else '' }}">Feedback</a></li>
-
-            <!-- Checkout Link moved here, before Login/Register -->
-            <li><a href="{{ url_for('checkout', item_id=1) }}" class="{{ 'active' if request.path == url_for('checkout', item_id=1) else '' }}">Checkout</a></li>
-
-            {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('profile') }}" class="{{ 'active' if request.path == url_for('profile') else '' }}">Profile</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            {% else %}
-                <li><a href="{{ url_for('login') }}" class="{{ 'active' if request.path == url_for('login') else '' }}">Login</a></li>
-                <li><a href="{{ url_for('register') }}" class="{{ 'active' if request.path == url_for('register') else '' }}">Register</a></li>
-            {% endif %}
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('news') }}">News</a></li>
+            <li><a href="{{ url_for('events') }}">Events</a></li>
+            <li><a href="{{ url_for('exhibits') }}">Exhibits</a></li>
+            <li><a href="{{ url_for('services') }}">Services</a></li>
+            <li><a href="{{ url_for('feedback') }}">Feedback</a></li>
+            <li><a href="{{ url_for('checkout', item_id=1) }}">Checkout</a></li>
         </ul>
     </nav>
     
-    {% block content %}{% endblock %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
     
-    <footer style="text-align: center; margin: 20px 0; padding: 10px; position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f8f8; border-top: 1px solid #ddd;">
+    <footer>
+        <a href="/about" class="about-us-button">About Us</a>
         <p>© 2024 Museum Website. All rights reserved.</p>
-        <a href="{{ url_for('about') }}" 
-           style="display: inline-block; text-decoration: none; font-size: 16px; color: #fff; background-color: #007bff; padding: 10px 20px; border-radius: 5px; margin-top: 10px;">
-           About Us
-        </a>
-    </footer>
-    
+    </footer>    
+</body>
+</html>

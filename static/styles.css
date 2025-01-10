@@ -5,9 +5,25 @@
     box-sizing: border-box;
 }
 
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/* Ensure the page uses the full height of the viewport */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Main content area should expand to fill remaining space */
+main {
+    flex: 1;
+    padding: 20px;
 }
 
 /* Hero Section */
@@ -131,12 +147,51 @@ nav ul li a.active {
 
 /* Footer */
 footer {
-    background-color: #333;
-    color: white;
+    background-color: #f8f8f8;
+    color: #555;
     text-align: center;
     padding: 10px 0;
+    border-top: 1px solid #ddd;
     position: relative;
     width: 100%;
+}
+
+footer a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 16px;
+    background-color: #333;
+    padding: 15px 30px;
+    border-radius: 5px;
+    display: inline-block;
+    margin: 20px 0;
+    transition: background-color 0.3s ease;
+}
+
+footer a:hover {
+    background-color: #555;
+}
+
+footer p {
+    margin-top: 10px;
+}
+
+/* About Us Section (Inside Footer) */
+.about-us-button {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 16px;
+    background-color: #333;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.about-us-button:hover {
+    background-color: #555;
 }
 
 /* Responsive Design */
@@ -150,17 +205,4 @@ footer {
     .grid-container {
         grid-template-columns: 1fr;
     }
-}
-
-.about-us {
-    text-align: center;
-    margin-top: 50px;
-    padding: 20px;
-    background-color: #f8f8f8;
-    border-top: 1px solid #ddd;
-}
-.about-us p {
-    margin: 0;
-    font-size: 14px;
-    color: #555;
 }
