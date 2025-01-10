@@ -8,6 +8,16 @@
 
     <div class="featured-items">
         <h2>Featured Items</h2>
-        {% include 'grids.html' %}
+        <div class="grid-container">
+            {% for item in featured_items %}
+                <div class="grid-item">
+                    <a href="{{ url_for('login') }}" class="item-link">
+                        <img src="{{ item.image }}" alt="{{ item.title }}">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

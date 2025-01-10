@@ -34,10 +34,7 @@ def home():
         {'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'}
     ]
     
-    if current_user.is_authenticated:
-        return render_template('home.html', featured_items=featured_items)
-    else:
-        return render_template('home.html')
+    return render_template('home.html', featured_items=featured_items)
 
 
 @app.route("/login", methods=['GET', 'POST'])
