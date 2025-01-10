@@ -327,7 +327,7 @@ def order_confirmation(ticket_id):
     if not ticket or ticket.user_id != current_user.id:
         flash("Order not found!", 'danger')
         return redirect(url_for('home'))
-
+    
     items = {
         1: {'title': 'Ancient Vase', 'price': 25},
         2: {'title': 'Renaissance Painting', 'price': 30},
