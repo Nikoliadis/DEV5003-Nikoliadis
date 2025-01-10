@@ -10,12 +10,15 @@
     <nav>
         <ul>
             <li><a href="{{ url_for('home') }}" class="{{ 'active' if request.path == url_for('home') else '' }}">Home</a></li>
-            <li><a href="{{ url_for('about') }}" class="{{ 'active' if request.path == url_for('about') else '' }}">About Us</a></li>
             <li><a href="{{ url_for('news') }}" class="{{ 'active' if request.path == url_for('news') else '' }}">News</a></li>
             <li><a href="{{ url_for('events') }}" class="{{ 'active' if request.path == url_for('events') else '' }}">Events</a></li>
             <li><a href="{{ url_for('exhibits') }}" class="{{ 'active' if request.path == url_for('exhibits') else '' }}">Exhibits</a></li>
             <li><a href="{{ url_for('services') }}" class="{{ 'active' if request.path == url_for('services') else '' }}">Services</a></li>
             <li><a href="{{ url_for('feedback') }}" class="{{ 'active' if request.path == url_for('feedback') else '' }}">Feedback</a></li>
+
+            <!-- Checkout Link moved here, before Login/Register -->
+            <li><a href="{{ url_for('checkout', item_id=1) }}" class="{{ 'active' if request.path == url_for('checkout', item_id=1) else '' }}">Checkout</a></li>
+
             {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('profile') }}" class="{{ 'active' if request.path == url_for('profile') else '' }}">Profile</a></li>
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
