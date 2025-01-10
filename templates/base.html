@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Museum</title>
 </head>
+
 <body>
     <nav>
         <ul>
@@ -31,8 +32,11 @@
     
     {% block content %}{% endblock %}
     
-    <footer>
+    <footer style="text-align: center; margin: 20px 0; padding: 10px; position: fixed; bottom: 0; left: 0; width: 100%; background-color: #f8f8f8; border-top: 1px solid #ddd;">
         <p>© 2024 Museum Website. All rights reserved.</p>
+        <a href="{{ url_for('about') }}" 
+           style="display: inline-block; text-decoration: none; font-size: 16px; color: #fff; background-color: #007bff; padding: 10px 20px; border-radius: 5px; margin-top: 10px;">
+           About Us
+        </a>
     </footer>
-</body>
-</html>
+    

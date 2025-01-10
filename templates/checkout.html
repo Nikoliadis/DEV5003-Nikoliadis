@@ -1,41 +1,170 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="container mt-4">
-    <h1>Checkout for {{ item['title'] }}</h1>
-
-    <form method="POST">
-        <div class="form-group">
-            <label for="quantity">Quantity</label>
-            <input type="number" id="quantity" name="quantity" class="form-control" min="1" required>
-        </div>
-
-        <div class="form-group">
-            <label for="payment_method">Payment Method</label>
-            <select id="payment_method" name="payment_method" class="form-control" required>
-                <option value="on_site">On-site (at the museum)</option>
-                <option value="credit_card">Credit Card</option>
-            </select>
-        </div>
-
-        <div id="address_form" style="display:none;">
-            <div class="form-group">
-                <label for="address">Shipping Address</label>
-                <textarea id="address" name="address" class="form-control" rows="4" placeholder="Enter your address" required></textarea>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary mt-3">Place Order</button>
-    </form>
-</div>
-
-<script>
-    document.getElementById('payment_method').addEventListener('change', function() {
-        if (this.value == 'credit_card') {
-            document.getElementById('address_form').style.display = 'block';
-        } else {
-            document.getElementById('address_form').style.display = 'none';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
         }
-    });
-</script>
-{% endblock %}
+
+        .checkout-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .checkout-header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .payment-methods {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .payment-method {
+            flex: 1;
+            margin-right: 10px;
+            text-align: center;
+            padding: 10px;
+            background: #f1f1f1;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: #007bff;
+        }
+
+        .payment-method.active {
+            border-color: #007bff;
+            background: #e9f4ff;
+        }
+
+        .checkout-button {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .checkout-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1>Checkout</h1>
+        </div>
+        <form action="{{ url_for('process_checkout') }}" method="POST">
+            <div class="form-group">
+                <label for="ticket">Ticket:</label>
+                <input type="text" id="ticket" name="ticket" value="{{ selected_ticket }}" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="payment-method">Payment Method:</label>
+                <div class="payment-methods">
+                    <div class="payment-method" id="onsite-payment" onclick="selectPaymentMethod('onsite')">
+                        On-site
+                    </div>
+                    <div class="payment-method" id="credit-card-payment" onclick="selectPaymentMethod('credit-card')">
+                        Credit Card
+                    </div>
+                </div>
+                <input type="hidden" name="payment_method" id="payment_method" value="onsite">
+            </div>
+
+            <div id="credit-card-info" style="display: none;">
+                <div class="form-group">
+                    <label for="card_name">Card Owner First and Last Name:</label>
+                    <input type="text" id="card_name" name="card_name" placeholder="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="card_number">Card Number:</label>
+                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+                </div>
+
+                <div class="form-group">
+                    <label for="cvv">CVV:</label>
+                    <input type="text" id="cvv" name="cvv" placeholder="123">
+                </div>
+            </div>
+
+            <button type="submit" class="checkout-button">Place Order</button>
+        </form>
+    </div>
+
+    <script>
+        function selectPaymentMethod(method) {
+            document.getElementById('payment_method').value = method;
+
+            const onsite = document.getElementById('onsite-payment');
+            const creditCard = document.getElementById('credit-card-payment');
+            const creditCardInfo = document.getElementById('credit-card-info');
+
+            if (method === 'onsite') {
+                onsite.classList.add('active');
+                creditCard.classList.remove('active');
+                creditCardInfo.style.display = 'none';
+            } else {
+                onsite.classList.remove('active');
+                creditCard.classList.add('active');
+                creditCardInfo.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

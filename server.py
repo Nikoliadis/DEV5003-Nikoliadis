@@ -230,6 +230,40 @@ def checkout(item_id):
 
     return render_template('checkout.html', item=item)
 
+@app.route('/place_order', methods=['POST'])
+def place_order():
+    quantity = request.form.get('quantity')
+    payment_method = request.form.get('payment_method')
+
+    if payment_method == 'credit_card':
+        card_number = request.form.get('card_number')
+        card_owner = request.form.get('card_owner')
+        cvv = request.form.get('cvv')
+
+        if not all([card_number, card_owner, cvv]):
+            return "Missing credit card details", 400
+
+        card_owner_parts = card_owner.split()
+        if len(card_owner_parts) < 2:
+            return "Please provide both first and last name", 400
+
+        first_name = card_owner_parts[0]
+        last_name = " ".join(card_owner_parts[1:])
+
+        print(f"Processing payment for {first_name} {last_name}")
+
+    return f"Order placed successfully! Quantity: {quantity}, Payment Method: {payment_method}"
+
+@app.route('/process_checkout', methods=['POST'])
+def process_checkout():
+    # Handle the form submission here
+    payment_method = request.form.get('payment_method')
+    ticket = request.form.get('ticket')
+    quantity = request.form.get('quantity')
+    # Add logic to process payment or record data
+    return "Order placed successfully!"
+
+
 @app.route("/order_confirmation/<int:ticket_id>")
 @login_required
 def order_confirmation(ticket_id):
