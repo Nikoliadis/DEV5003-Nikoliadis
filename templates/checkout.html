@@ -1,26 +1,76 @@
-<!-- checkout.html -->
-<h1>Checkout</h1>
-{% if cart_items %}
-    <ul>
-        {% for item in cart_items %}
-            <li>
-                <img src="{{ item['image'] }}" alt="{{ item['title'] }}" style="max-width: 100px;">
-                <strong>{{ item['title'] }}</strong><br>
-                Price: ${{ item['price'] }}<br>
-                Quantity: {{ item['quantity'] }}<br>
-                Total: ${{ item['total_price'] }}<br>
-            </li>
-        {% endfor %}
-    </ul>
-    <p>Total: ${{ total_price }}</p>
-    <form method="POST">
-        <label for="payment_method">Payment Method:</label>
-        <select name="payment_method" required>
-            <option value="on-site">On-site</option>
-            <option value="credit_card">Credit Card</option>
-        </select>
-        <button type="submit">Place Order</button>
-    </form>
-{% else %}
-    <p>Your cart is empty. Add some items to your cart first.</p>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <!-- Include Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+        .checkout-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .checkout-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .empty-cart-message {
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+        }
+        .add-items-btn {
+            font-size: 18px;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .add-items-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Checkout Card -->
+        <div class="checkout-card">
+            <div class="checkout-header">
+                <h2>Checkout</h2>
+                <p>Your cart is empty.</p>
+            </div>
+
+            <!-- Empty Cart Message -->
+            <p class="empty-cart-message">Add some items to your cart first.</p>
+
+            <!-- Button to go back to shopping or add items -->
+            <button class="add-items-btn" onclick="window.location.href='/events'">Go to Events</button>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (optional, if needed) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>
