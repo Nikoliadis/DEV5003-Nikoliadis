@@ -22,6 +22,14 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
+    def set_password(self, password):
+        """Hash the password and set it to the database field."""
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Check if the given password matches the stored hash."""
+        return check_password_hash(self.password, password)
+
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -56,20 +64,29 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        login_input = request.form['login']
+        password = request.form['password']
 
-        user = User.query.filter_by(email=email).first()
-        if not user or not check_password_hash(user.password, password):
-            flash('Invalid email or password. Please try again.', 'danger')
-            return redirect(url_for('login'))
+        if not login_input or not password:
+            flash("Please enter both username/email and password", "danger")
+            return redirect(url_for("login"))
 
-        login_user(user)  # This ensures Flask-Login recognizes the user as logged in
-        flash(f'Welcome back, {user.username}!', 'success')
-        return redirect(url_for('home'))
+        # Check if the input is an email or username
+        user = None
+        if '@' in login_input:  # If it contains '@', it's likely an email
+            user = User.query.filter_by(email=login_input).first()
+        else:  # Otherwise, treat it as a username
+            user = User.query.filter_by(username=login_input).first()
+
+        # Check if user exists and password matches
+        if user and user.check_password(password):
+            login_user(user)
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))  # Redirect to home or dashboard
+        else:
+            flash('Invalid email/username or password', 'danger')
 
     return render_template('login.html')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -78,14 +95,24 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        if email in users:
+        # Check if the email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
             flash('An account with this email already exists.', 'danger')
             return redirect(url_for('register'))
 
-        users[email] = {'username': username, 'password': password}
+        # Create new user object
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)  # Set the hashed password
+
+        # Add the user to the session and commit to the database
+        db.session.add(new_user)
+        db.session.commit()  # This is crucial to save the user to the database
+
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
+
 
 @app.route('/profile')
 @login_required

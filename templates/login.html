@@ -18,10 +18,15 @@
         {% endif %}
         {% endwith %}
         <form action="{{ url_for('login') }}" method="POST">
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
+            <label for="login">Email or Username:</label>
+            <input type="text" id="login" name="login" required placeholder="Enter your email or username">
+        
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+        
             <button type="submit">Login</button>
         </form>
+        
         <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
     </div>
 </body>
