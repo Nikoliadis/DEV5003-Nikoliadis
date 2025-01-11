@@ -5,33 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us</title>
     <style>
+        /* Basic styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            background-color: #f4f4f4;
             text-align: center;
         }
-        .content {
-            margin: 50px auto;
-            max-width: 600px;
-            font-size: 16px;
-            line-height: 1.5;
+
+        /* Title at the Top - Default Color */
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
         }
-        a {
-            color: #007bff;
+
+        /* Container for About Us content */
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgb(38, 0, 253);
+            max-width: 800px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .content p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* Blue Button Styling */
+        .back-to-home-btn {
             text-decoration: none;
+            background-color: #007bff !important; /* Force blue background */
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            border: none; /* Remove border */
+            text-align: center;
         }
-        a:hover {
-            text-decoration: underline;
+
+        /* Center the button */
+        .btn-container {
+            display: flex;
+            justify-content: center; /* Center the button horizontally */
+            margin-top: 20px;
         }
     </style>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+
+    <!-- About Us Title at the Top (Default Color) -->
     <h1>About Us</h1>
-    <div class="content">
-        <p>Welcome to our Museum Ticketing System! Our goal is to connect people with history and culture through our vast collection of artifacts and exhibits.</p>
-        <p>Visit us to explore the wonders of the past, or book your tickets online for a seamless experience!</p>
-        <a href="/">Back to Home</a>
+
+    <!-- Container for About Us Content -->
+    <div class="container">
+        <div class="content">
+            <p>Welcome to our Museum Ticketing System! Our goal is to connect people with history and culture through our vast collection of artifacts and exhibits.</p>
+            <p>Visit us to explore the wonders of the past, or book your tickets online for a seamless experience!</p>
+        </div>
+
+        <div class="content">
+            <p>Here, we provide exclusive access to the finest artwork and historical artifacts. Explore our collection and learn about our exhibitions, events, and services!</p>
+        </div>
+
+        <!-- Center the Back to Home Button -->
+        <div class="btn-container">
+            <a href="{{ url_for('home') }}" class="back-to-home-btn">Back to Home</a>
+        </div>
     </div>
+
+    <!-- Bootstrap JS (optional, if you need any interactive components) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>
