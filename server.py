@@ -32,6 +32,7 @@ class Ticket(db.Model):
     address = db.Column(db.String(255), nullable=True)  # Only for credit card payments
     total_cost = db.Column(db.Float, nullable=False)  # Add total cost
 
+users = {}
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -47,52 +48,37 @@ def home():
     ]
     return render_template('home.html', featured_items=featured_items)
 
-@app.route("/login", methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_input = request.form.get('login_input')
+        email = request.form.get('email')
         password = request.form.get('password')
 
-        if not login_input or not password:
-            flash('Please enter both username/email and password.', 'danger')
+        user = users.get(email)
+        if not user or user['password'] != password:
+            flash('Invalid email or password. Please try again.', 'danger')
             return redirect(url_for('login'))
 
-        user = User.query.filter((User.username == login_input) | (User.email == login_input)).first()
-
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('home'))
-        else:
-            flash('Login Unsuccessful. Please check username/email and password.', 'danger')
-            return redirect(url_for('login'))
+        session['user'] = user['username']
+        flash(f'Welcome back, {user["username"]}!', 'success')
+        return redirect(url_for('home'))
 
     return render_template('login.html')
 
-@app.route("/register", methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
 
-        if not username or not email or not password:
-            flash('Please fill in all fields.', 'danger')
+        if email in users:
+            flash('An account with this email already exists.', 'danger')
             return redirect(url_for('register'))
 
-        existing_user = User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first()
-
-        if existing_user:
-            flash('Username or Email already exists. Please choose a different one.', 'danger')
-            return redirect(url_for('register'))
-
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, email=email, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash('Registration Successful! Please log in.', 'success')
+        users[email] = {'username': username, 'password': password}
+        flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
-
     return render_template('register.html')
 
 @app.route('/profile')
@@ -100,11 +86,11 @@ def register():
 def profile():
     return render_template('profile.html', user=current_user)
 
-@app.route("/logout")
-@login_required
+@app.route('/logout')
 def logout():
-    logout_user()
-    return redirect(url_for('home'))
+    session.pop('user', None)
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
 
 @app.route("/about")
 def about():
@@ -281,7 +267,6 @@ def checkout():
         3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
         4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
     }
-
     cart = session.get('cart', [])
     cart_items = []
     total_price = 0
@@ -296,48 +281,13 @@ def checkout():
 
     if request.method == 'POST':
         payment_method = request.form.get('payment_method')
+        address = request.form.get('address')
+        # Process payment and save order details
 
-        # Create a new Ticket record in the database
-        for cart_item in cart:
-            item_id = cart_item['item_id']
-            quantity = cart_item['quantity']
-            total_cost = items[item_id]['price'] * quantity
-            new_ticket = Ticket(
-                user_id=current_user.id,
-                item_id=item_id,
-                quantity=quantity,
-                payment_method=payment_method,
-                total_cost=total_cost,
-            )
-            db.session.add(new_ticket)
-
-        db.session.commit()
-
-        flash("Order placed successfully!", 'success')
-        session.pop('cart', None)  # Clear the cart after the order is placed
+        flash("Your order has been placed successfully!", 'success')
         return redirect(url_for('home'))
 
     return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
-
-
-@app.route("/order_confirmation/<int:ticket_id>")
-@login_required
-def order_confirmation(ticket_id):
-    ticket = Ticket.query.get(ticket_id)
-    if not ticket or ticket.user_id != current_user.id:
-        flash("Order not found!", 'danger')
-        return redirect(url_for('home'))
-    
-    items = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
-    }
-
-    item = items.get(ticket.item_id)
-    return render_template('order_confirmation.html', ticket=ticket, item=item)
-
 
 if __name__ == '__main__':
     app.run(debug=True)

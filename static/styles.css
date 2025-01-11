@@ -6,21 +6,19 @@
 }
 
 body, html {
-    margin: 0;
-    padding: 0;
     height: 100%;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
 }
 
-/* Ensure the page uses the full height of the viewport */
+/* Page Structure */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: #f4f4f4;
 }
 
-/* Main content area should expand to fill remaining space */
 main {
     flex: 1;
     padding: 20px;
@@ -31,69 +29,88 @@ main {
     text-align: center;
     background-color: #333;
     color: white;
-    padding: 50px 20px;
+    padding: 60px 20px;
 }
 
 .hero h1 {
-    font-size: 48px;
+    font-size: 3rem;
+    margin-bottom: 10px;
 }
 
 .hero p {
-    font-size: 20px;
+    font-size: 1.25rem;
     margin-top: 10px;
 }
 
 /* Navigation Bar */
 nav {
     background-color: #333;
-    color: white;
-    padding: 10px 30px;
+    padding: 15px 30px;
     text-align: center;
 }
 
 nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
 nav ul li {
-    margin: 0 15px;
+    display: inline-block;
 }
 
 nav ul li a {
-    text-decoration: none;
     color: white;
+    text-decoration: none;
     font-size: 16px;
-    padding: 5px 10px;
+    padding: 10px 20px;
+    background-color: #333; /* Updated to match About Us button color */
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-block;
 }
 
 nav ul li a:hover {
-    color: #ddd;
-    font-weight: bold;
+    background-color: #555; /* Updated to match About Us hover color */
+    transform: translateY(-2px);
 }
 
 nav ul li a.active {
-    color: #ddd;
+    background-color: #555; /* Active button now uses hover color */
     font-weight: bold;
-    border-bottom: 2px solid #ddd;
 }
 
-/* Featured Items Section */
+/* Responsive Navigation */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    nav ul li a {
+        width: 100%; /* Full-width buttons on small screens */
+        text-align: center;
+    }
+}
+
+/* Featured Section */
 .featured-items {
-    padding: 20px;
     background-color: white;
     margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .featured-items h2 {
-    font-size: 30px;
+    font-size: 2rem;
     margin-bottom: 20px;
+    text-align: center;
 }
 
-/* Grid Section */
+/* Grid Layout */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -102,11 +119,11 @@ nav ul li a.active {
 }
 
 .grid-item {
-    background-color: #fff;
+    background-color: white;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
-    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -118,21 +135,25 @@ nav ul li a.active {
     object-fit: cover;
     border-radius: 8px;
     margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.grid-item img:hover {
+    transform: scale(1.05);
 }
 
 .grid-item h3 {
-    font-size: 22px;
+    font-size: 1.5rem;
     margin-bottom: 10px;
 }
 
 .grid-item p {
-    font-size: 16px;
     color: #777;
-    text-align: center;
+    font-size: 1rem;
 }
 
 /* Section Styles */
-.museum-info, .news-section, .events-section, .exhibits-section, .services-section, .feedback-section {
+section {
     padding: 20px;
     margin-top: 30px;
     background-color: white;
@@ -140,8 +161,8 @@ nav ul li a.active {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.museum-info h2, .news-section h2, .events-section h2, .exhibits-section h2, .services-section h2, .feedback-section h2 {
-    font-size: 26px;
+section h2 {
+    font-size: 1.75rem;
     margin-bottom: 15px;
 }
 
@@ -150,22 +171,20 @@ footer {
     background-color: #f8f8f8;
     color: #555;
     text-align: center;
-    padding: 10px 0;
+    padding: 20px 10px;
     border-top: 1px solid #ddd;
-    position: relative;
-    width: 100%;
+    margin-top: auto;
 }
 
 footer a {
+    color: white;
     text-decoration: none;
-    color: #fff;
     font-size: 16px;
     background-color: #333;
     padding: 15px 30px;
     border-radius: 5px;
-    display: inline-block;
-    margin: 20px 0;
     transition: background-color 0.3s ease;
+    display: inline-block;
 }
 
 footer a:hover {
@@ -176,22 +195,95 @@ footer p {
     margin-top: 10px;
 }
 
-/* About Us Section (Inside Footer) */
+/* About Us Button */
 .about-us-button {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 16px;
     background-color: #333;
     color: white;
     padding: 15px 30px;
     border-radius: 5px;
     text-decoration: none;
-    display: inline-block;
     transition: background-color 0.3s ease;
+    display: inline-block;
 }
 
 .about-us-button:hover {
     background-color: #555;
+}
+
+/* Form Styles */
+.form-container {
+    background: #fff;
+    margin: 20px auto;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.form-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-container input,
+.form-container button {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.form-container button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+.form-container p {
+    margin-top: 10px;
+    color: #555;
+}
+
+.form-container a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.form-container a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: left;
+}
+
+.alert.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
 /* Responsive Design */
@@ -199,10 +291,19 @@ footer p {
     .grid-container {
         grid-template-columns: 1fr 1fr;
     }
+    .hero h1 {
+        font-size: 2.5rem;
+    }
 }
 
 @media (max-width: 480px) {
     .grid-container {
         grid-template-columns: 1fr;
+    }
+    .hero h1 {
+        font-size: 2rem;
+    }
+    .hero p {
+        font-size: 1rem;
     }
 }
