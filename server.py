@@ -4,7 +4,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -38,6 +37,12 @@ users = {}
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    # Redirect users to the login page when they're not authenticated
+    flash("You need to log in to access this page.", "danger")
+    return redirect(url_for("login"))
+
 @app.route("/")
 def home():
     featured_items = [
@@ -54,16 +59,17 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        user = users.get(email)
-        if not user or user['password'] != password:
+        user = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
             flash('Invalid email or password. Please try again.', 'danger')
             return redirect(url_for('login'))
 
-        session['user'] = user['username']
-        flash(f'Welcome back, {user["username"]}!', 'success')
+        login_user(user)  # This ensures Flask-Login recognizes the user as logged in
+        flash(f'Welcome back, {user.username}!', 'success')
         return redirect(url_for('home'))
 
     return render_template('login.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -112,9 +118,26 @@ def exhibits():
 def services():
     return render_template('services.html')
 
-@app.route("/feedback")
+@app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
+    if request.method == 'POST':
+        # Retrieve form data
+        name = request.form.get('name')
+        email = request.form.get('email')
+        feedback_text = request.form.get('feedback')
+
+        flash("Thank You For Your Feedback! We Will Analyze It And If Necessary We Will Contact You Via Email", "success")
+        return redirect(url_for('feedback'))
+
     return render_template('feedback.html')
+
+@app.route('/submit_feedback', methods=['POST'])
+def submit_feedback():
+    # Handle form submission here
+    feedback = request.form['feedback']
+    # You can process the feedback as needed, for example, save it to the database
+    flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
+    return redirect(url_for('feedback'))  # Redirect back to the feedback page or another page
 
 @app.route("/item/<int:item_id>")
 @login_required
@@ -225,48 +248,22 @@ def cart():
 
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
 
-@app.route('/place_order', methods=['POST'])
-def place_order():
-    quantity = request.form.get('quantity')
-    payment_method = request.form.get('payment_method')
-
-    if payment_method == 'credit_card':
-        card_number = request.form.get('card_number')
-        card_owner = request.form.get('card_owner')
-        cvv = request.form.get('cvv')
-
-        if not all([card_number, card_owner, cvv]):
-            return "Missing credit card details", 400
-
-        card_owner_parts = card_owner.split()
-        if len(card_owner_parts) < 2:
-            return "Please provide both first and last name", 400
-
-        first_name = card_owner_parts[0]
-        last_name = " ".join(card_owner_parts[1:])
-
-        print(f"Processing payment for {first_name} {last_name}")
-
-    return f"Order placed successfully! Quantity: {quantity}, Payment Method: {payment_method}"
-
-@app.route('/process_checkout', methods=['POST'])
-def process_checkout():
-    # Handle the form submission here
-    payment_method = request.form.get('payment_method')
-    ticket = request.form.get('ticket')
-    quantity = request.form.get('quantity')
-    # Add logic to process payment or record data
-    return "Order placed successfully!"
-
 @app.route("/checkout", methods=['GET', 'POST'])
 @login_required
 def checkout():
+    if not current_user.is_authenticated:
+        flash('You need to log in to proceed to checkout!', 'danger')
+        return redirect(url_for('login'))
+
+    print(f"Current user: {current_user.username}")  # Debug to confirm user details
+
     items = {
         1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
         2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
         3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
         4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
     }
+
     cart = session.get('cart', [])
     cart_items = []
     total_price = 0
