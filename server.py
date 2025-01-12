@@ -59,7 +59,8 @@ def home():
         {'id': 3, 'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format', 'description': 'A rare sculpture from Ancient Rome.'},
         {'id': 4, 'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'}
     ]
-    return render_template('home.html', featured_items=featured_items)
+    user_logged_in = 'user_id' in session 
+    return render_template('home.html', featured_items=featured_items, user_logged_in=user_logged_in)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -120,9 +121,10 @@ def profile():
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    session.pop('user_id', None)
+    session.clear()
     flash('You have been logged out.', 'success')
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 @app.route("/about")
 def about():
