@@ -74,15 +74,15 @@ def login():
 
         # Check if the input is an email or username
         user = None
-        if '@' in login_input:  # If it contains '@', it's likely an email
+        if '@' in login_input:
             user = User.query.filter_by(email=login_input).first()
-        else:  # Otherwise, treat it as a username
+        else:
             user = User.query.filter_by(username=login_input).first()
 
         # Check if user exists and password matches
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('home'))  # Redirect to home or dashboard
+            return redirect(url_for('home'))
         else:
             flash('Invalid email/username or password', 'danger')
 
@@ -103,11 +103,11 @@ def register():
 
         # Create new user object
         new_user = User(username=username, email=email)
-        new_user.set_password(password)  # Set the hashed password
+        new_user.set_password(password)
 
         # Add the user to the session and commit to the database
         db.session.add(new_user)
-        db.session.commit()  # This is crucial to save the user to the database
+        db.session.commit()
 
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
@@ -175,7 +175,6 @@ def services():
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     if request.method == 'POST':
-        # Retrieve form data
         name = request.form.get('name')
         email = request.form.get('email')
         feedback_text = request.form.get('feedback')
@@ -187,11 +186,9 @@ def feedback():
 
 @app.route('/submit_feedback', methods=['POST'])
 def submit_feedback():
-    # Handle form submission here
     feedback = request.form['feedback']
-    # You can process the feedback as needed, for example, save it to the database
     flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
-    return redirect(url_for('feedback'))  # Redirect back to the feedback page or another page
+    return redirect(url_for('feedback'))
 
 @app.route("/item/<int:item_id>")
 @login_required
@@ -241,7 +238,7 @@ def buy_ticket():
         4: {'title': 'Impressionist Artwork', 'price': 15},
     }
 
-    item = items.get(int(item_id))  # Ensure the item_id is treated as an integer
+    item = items.get(int(item_id))
     if not item:
         flash("Item not found!", 'danger')
         return redirect(url_for('home'))
@@ -273,10 +270,10 @@ def add_to_cart(item_id):
     # Add item to session
     cart = session.get('cart', [])
     cart.append({'item_id': item_id, 'quantity': quantity})
-    session['cart'] = cart  # Save the cart in the session
+    session['cart'] = cart
 
     flash(f"Added {quantity} of {item['title']} to your cart!", 'success')
-    return redirect(url_for('cart'))  # Redirect to the cart page
+    return redirect(url_for('cart'))
 
 @app.route("/cart")
 @login_required
@@ -309,7 +306,7 @@ def checkout():
         flash('You need to log in to proceed to checkout!', 'danger')
         return redirect(url_for('login'))
 
-    print(f"Current user: {current_user.username}")  # Debug to confirm user details
+    print(f"Current user: {current_user.username}")
 
     items = {
         1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
@@ -333,7 +330,6 @@ def checkout():
     if request.method == 'POST':
         payment_method = request.form.get('payment_method')
         address = request.form.get('address')
-        # Process payment and save order details
 
         flash("Your order has been placed successfully!", 'success')
         return redirect(url_for('home'))
