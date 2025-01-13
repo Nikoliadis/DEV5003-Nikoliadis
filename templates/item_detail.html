@@ -3,8 +3,46 @@
 <p>Price: ${{ item['price'] }}</p>
 <p>Description: {{ item['description'] }}</p>
 
+<!-- Existing Form -->
 <form method="POST" action="{{ url_for('add_to_cart', item_id=item_id) }}">
     <label for="quantity">Quantity:</label>
     <input type="number" name="quantity" id="quantity" value="1" min="1" required>
     <button type="submit">Add to Cart</button>
 </form>
+
+<!-- Add to Cart Button with Fetch -->
+<button class="add-to-cart-btn" data-item-id="{{ item_id }}">Add to Cart via Fetch</button>
+
+<!-- JavaScript for Fetch API -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const button = document.querySelector('.add-to-cart-btn');
+        if (button) {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                const quantity = document.querySelector('#quantity').value;
+
+                fetch('/add_to_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ item_id: itemId, quantity: quantity })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Optionally update cart display dynamically
+                    } else {
+                        alert('Failed to add item to cart.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding to cart.');
+                });
+            });
+        }
+    });
+</script>

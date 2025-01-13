@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -274,6 +274,15 @@ def add_to_cart(item_id):
 
     flash(f"Added {quantity} of {item['title']} to your cart!", 'success')
     return redirect(url_for('cart'))
+
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart_ajax():
+    item_id = request.json.get('item_id')
+    if 'cart' not in session:
+        session['cart'] = []
+    session['cart'].append(item_id)
+    session.modified = True  # Ensure the session updates
+    return jsonify({'success': True, 'message': 'Item added to cart!', 'cart': session['cart']})
 
 @app.route("/cart")
 @login_required
