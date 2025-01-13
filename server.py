@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -262,44 +262,45 @@ def buy_ticket():
 @app.route("/add_to_checkout/<int:item_id>", methods=["POST"])
 @login_required
 def add_to_checkout(item_id):
-    # Define the items as before
+    # Define the items
     items = {
-        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
     }
 
-    # Get the item from the dictionary
+    # Check if item exists
     item = items.get(item_id)
     if not item:
-        flash("Item not found!", 'danger')
-        return redirect(url_for('home'))
+        return jsonify({"success": False, "message": "Item not found"}), 404
 
-    # If the request is from an AJAX (fetch) call, retrieve the quantity from the request body
+    # Handle AJAX (fetch) requests
     if request.is_json:
         data = request.get_json()
-        quantity = data.get('quantity', 1)  # Default to 1 if not provided
+        quantity = data.get('quantity', 1)  # Default to 1
 
-        # Retrieve the current checkout items from the session
+        # Retrieve current checkout items from session
         checkout = session.get('checkout', [])
-
-        # Add the item to checkout (with the provided quantity)
         checkout.append({'item_id': item_id, 'quantity': quantity})
-
-        # Save the updated checkout list to the session
         session['checkout'] = checkout
 
-        # Return a JSON response for the AJAX call
         return jsonify({"success": True, "message": f"Item '{item['title']}' added to checkout."})
 
-    # For non-AJAX requests (regular form submission)
+    # Handle non-AJAX (regular) form submissions
     checkout = session.get('checkout', [])
-    checkout.append({'item_id': item_id, 'quantity': 1})  # Default to 1 if no quantity is provided
+    checkout.append({'item_id': item_id, 'quantity': 1})  # Default to 1
     session['checkout'] = checkout
 
     flash(f"Item '{item['title']}' added to checkout.", 'success')
     return redirect(url_for('home'))
+
+
+
+# Handle CSRF Errors Globally
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    return jsonify({"success": False, "message": "CSRF token validation failed"}), 400
 
 @app.route("/cart")
 @login_required
