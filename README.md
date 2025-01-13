@@ -11,4 +11,5 @@ We Will Need To Deactivate Protection
 4. pip install flask_sqlalchemy
 5. pip install flask_login
 6. pip install flask_migrate
-7. Finally We Run "python server.py" to run the site!
+7. pip install flask-wtf
+8. Finally We Run "python server.py" to run the site!
