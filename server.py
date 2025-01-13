@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, json
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,13 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+items = {
+    1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+    2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+    3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+    4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+}
 
 # Models for User and Tickets (To track the purchases)
 class User(db.Model, UserMixin):
@@ -275,15 +282,6 @@ def add_to_cart(item_id):
     flash(f"Added {quantity} of {item['title']} to your cart!", 'success')
     return redirect(url_for('cart'))
 
-@app.route('/add_to_cart', methods=['POST'])
-def add_to_cart_ajax():
-    item_id = request.json.get('item_id')
-    if 'cart' not in session:
-        session['cart'] = []
-    session['cart'].append(item_id)
-    session.modified = True  # Ensure the session updates
-    return jsonify({'success': True, 'message': 'Item added to cart!', 'cart': session['cart']})
-
 @app.route("/cart")
 @login_required
 def cart():
@@ -311,38 +309,40 @@ def cart():
 @app.route("/checkout", methods=['GET', 'POST'])
 @login_required
 def checkout():
-    if not current_user.is_authenticated:
-        flash('You need to log in to proceed to checkout!', 'danger')
-        return redirect(url_for('login'))
-
-    print(f"Current user: {current_user.username}")
-
-    items = {
-        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
-    }
-
-    cart = session.get('cart', [])
     cart_items = []
     total_price = 0
 
+    # Fetch the cart from the session
+    cart = session.get('cart', [])
+
+    # Ensure items are in the expected format
     for cart_item in cart:
-        item = items.get(cart_item['item_id'])
-        if item:
-            item['quantity'] = cart_item['quantity']
-            item['total_price'] = item['price'] * cart_item['quantity']
-            cart_items.append(item)
-            total_price += item['total_price']
+        print("Processing cart_item:", cart_item)
+        print("Type of cart_item:", type(cart_item))
 
-    if request.method == 'POST':
-        payment_method = request.form.get('payment_method')
-        address = request.form.get('address')
+        # If cart_item is a string (e.g., JSON string), attempt to parse it
+        if isinstance(cart_item, str):
+            try:
+                cart_item = json.loads(cart_item)  # Try parsing it as JSON
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse cart_item: {cart_item} - {e}")
+                continue  # Skip this cart_item if parsing fails
 
-        flash("Your order has been placed successfully!", 'success')
-        return redirect(url_for('home'))
+        # Ensure cart_item is a dictionary with 'item_id'
+        if isinstance(cart_item, dict) and 'item_id' in cart_item:
+            item = items.get(cart_item['item_id'])  # Fetch item from the items dictionary
+            if item:
+                # Calculate quantity and total price
+                item['quantity'] = cart_item.get('quantity', 1)
+                item['total_price'] = item['price'] * item['quantity']
+                cart_items.append(item)
+                total_price += item['total_price']
+            else:
+                print(f"Item not found for item_id: {cart_item['item_id']}")
+        else:
+            print("Unexpected cart_item format:", cart_item)
 
+    # Render the checkout page with the cart items and total price
     return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
 
 if __name__ == '__main__':
