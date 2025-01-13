@@ -3,44 +3,44 @@
 <p>Price: ${{ item['price'] }}</p>
 <p>Description: {{ item['description'] }}</p>
 
-<!-- Existing Form -->
-<form method="POST" action="{{ url_for('add_to_cart', item_id=item_id) }}">
-    <label for="quantity">Quantity:</label>
-    <input type="number" name="quantity" id="quantity" value="1" min="1" required>
-    <button type="submit">Add to Cart</button>
+<!-- Form to add item directly to checkout -->
+<form action="{{ url_for('add_to_checkout', item_id=item_id) }}" method="POST">
+    {{ csrf_token() }}  <!-- CSRF token for security -->
+    <button type="submit" class="btn btn-primary">Add to Checkout</button>
 </form>
 
-<!-- Add to Cart Button with Fetch -->
-<button class="add-to-cart-btn" data-item-id="{{ item_id }}">Add to Cart via Fetch</button>
+<!-- Add to Checkout Button with Fetch API (Optional for dynamic behavior) -->
+<button class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout via Fetch</button>
 
-<!-- JavaScript for Fetch API -->
+<!-- JavaScript for Fetch API (Optional - Can be removed if you don’t need dynamic behavior) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const button = document.querySelector('.add-to-cart-btn');
+        const button = document.querySelector('.add-to-checkout-btn');
         if (button) {
             button.addEventListener('click', function() {
                 const itemId = this.getAttribute('data-item-id');
-                const quantity = document.querySelector('#quantity').value;
+                const quantity = 1;  // Set the default quantity for adding to checkout (can be dynamic if needed)
 
-                fetch('/add_to_cart', {
+                fetch('/add_to_checkout', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'  <!-- CSRF token for security -->
                     },
                     body: JSON.stringify({ item_id: itemId, quantity: quantity })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
-                        // Optionally update cart display dynamically
+                        alert(data.message);  // Success message
+                        // Optionally update checkout display dynamically
                     } else {
-                        alert('Failed to add item to cart.');
+                        alert('Failed to add item to checkout.');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while adding to cart.');
+                    alert('An error occurred while adding to checkout.');
                 });
             });
         }

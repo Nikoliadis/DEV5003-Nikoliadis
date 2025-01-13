@@ -1,12 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, json
+from flask import Flask, render_template, request, redirect, url_for, flash, session, json, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['WTF_CSRF_ENABLED'] = True
 app.secret_key = 'laichi'
 
 db = SQLAlchemy(app)
@@ -256,9 +259,10 @@ def buy_ticket():
     flash(f"Successfully purchased {quantity} ticket(s) for {item['title']}! Total cost: ${total_cost}", 'success')
     return redirect(url_for('home'))
 
-@app.route("/add_to_cart/<int:item_id>", methods=['POST'])
+@app.route("/add_to_checkout/<int:item_id>", methods=["POST"])
 @login_required
-def add_to_cart(item_id):
+def add_to_checkout(item_id):
+    # Define the items as before
     items = {
         1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
         2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
@@ -266,21 +270,36 @@ def add_to_cart(item_id):
         4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
     }
 
+    # Get the item from the dictionary
     item = items.get(item_id)
     if not item:
         flash("Item not found!", 'danger')
         return redirect(url_for('home'))
 
-    # Get quantity from the form
-    quantity = int(request.form.get('quantity'))
-    
-    # Add item to session
-    cart = session.get('cart', [])
-    cart.append({'item_id': item_id, 'quantity': quantity})
-    session['cart'] = cart
+    # If the request is from an AJAX (fetch) call, retrieve the quantity from the request body
+    if request.is_json:
+        data = request.get_json()
+        quantity = data.get('quantity', 1)  # Default to 1 if not provided
 
-    flash(f"Added {quantity} of {item['title']} to your cart!", 'success')
-    return redirect(url_for('cart'))
+        # Retrieve the current checkout items from the session
+        checkout = session.get('checkout', [])
+
+        # Add the item to checkout (with the provided quantity)
+        checkout.append({'item_id': item_id, 'quantity': quantity})
+
+        # Save the updated checkout list to the session
+        session['checkout'] = checkout
+
+        # Return a JSON response for the AJAX call
+        return jsonify({"success": True, "message": f"Item '{item['title']}' added to checkout."})
+
+    # For non-AJAX requests (regular form submission)
+    checkout = session.get('checkout', [])
+    checkout.append({'item_id': item_id, 'quantity': 1})  # Default to 1 if no quantity is provided
+    session['checkout'] = checkout
+
+    flash(f"Item '{item['title']}' added to checkout.", 'success')
+    return redirect(url_for('home'))
 
 @app.route("/cart")
 @login_required
@@ -309,40 +328,34 @@ def cart():
 @app.route("/checkout", methods=['GET', 'POST'])
 @login_required
 def checkout():
+    # Define the items (as per your requirement)
+    items = {
+        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+    }
+
     cart_items = []
     total_price = 0
 
     # Fetch the cart from the session
     cart = session.get('cart', [])
 
-    # Ensure items are in the expected format
+    # Process each item in the cart
     for cart_item in cart:
-        print("Processing cart_item:", cart_item)
-        print("Type of cart_item:", type(cart_item))
-
-        # If cart_item is a string (e.g., JSON string), attempt to parse it
-        if isinstance(cart_item, str):
-            try:
-                cart_item = json.loads(cart_item)  # Try parsing it as JSON
-            except json.JSONDecodeError as e:
-                print(f"Failed to parse cart_item: {cart_item} - {e}")
-                continue  # Skip this cart_item if parsing fails
-
-        # Ensure cart_item is a dictionary with 'item_id'
+        # Ensure cart_item is a dictionary and has an item_id
         if isinstance(cart_item, dict) and 'item_id' in cart_item:
-            item = items.get(cart_item['item_id'])  # Fetch item from the items dictionary
+            item = items.get(cart_item['item_id'])
             if item:
-                # Calculate quantity and total price
-                item['quantity'] = cart_item.get('quantity', 1)
+                # Add quantity and calculate total price for each item
+                item['quantity'] = cart_item['quantity']
                 item['total_price'] = item['price'] * item['quantity']
                 cart_items.append(item)
                 total_price += item['total_price']
-            else:
-                print(f"Item not found for item_id: {cart_item['item_id']}")
         else:
-            print("Unexpected cart_item format:", cart_item)
+            print(f"Unexpected cart_item format: {cart_item}")
 
-    # Render the checkout page with the cart items and total price
     return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
 
 if __name__ == '__main__':
