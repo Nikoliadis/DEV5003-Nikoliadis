@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Ensure CSRF token is included in headers
-    const csrf_token = document.getElementById('csrf_token').value;
+    const csrf_token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     // Dynamic item creation
     const items = {
-        1: {'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        2: {'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        3: {'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'}
+        1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
+        2: { 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691' },
+        3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
+        4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
     };
 
     // Dynamically render the items
@@ -19,23 +19,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>${item.title}</h3>
                 <p>Price: $${item.price}</p>
                 <img src="${item.image}" alt="${item.title}" width="200">
-                <!-- Add to Cart Button -->
-                <button id="add-to-cart-btn-${itemId}" data-item-id="${itemId}">Add to Cart</button>
-                <!-- Add to Checkout Button -->
+                <form method="POST" action="/add_to_cart/${itemId}">
+                    <input type="hidden" name="csrf_token" value="${csrf_token}">
+                    <button id="add-to-cart-btn-${itemId}" data-item-id="${itemId}">Add to Cart</button>
+                </form>
                 <button class="add-to-checkout-btn" data-item-id="${itemId}">Add to Checkout</button>
             </div>
         `;
         itemsContainer.innerHTML += itemHTML;
 
         // Add to Cart Button functionality
-        document.getElementById(`add-to-cart-btn-${itemId}`).addEventListener("click", function() {
+        document.getElementById(`add-to-cart-btn-${itemId}`).addEventListener("click", function(event) {
+            event.preventDefault(); // Prevent form submission for AJAX handling
             const itemId = this.getAttribute("data-item-id");
 
             fetch(`/add_to_cart/${itemId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": csrf_token  // CSRF token for security
+                    "X-CSRFToken": csrf_token // CSRF token for security
                 },
                 body: JSON.stringify({ "item_id": itemId })
             })
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrf_token  // CSRF token for security
+                    'X-CSRFToken': csrf_token // Add CSRF token in headers
                 },
                 body: JSON.stringify({ item_id: itemId, quantity: quantity })
             })

@@ -6,7 +6,8 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, CSRFError
 
 app = Flask(__name__)
-csrf = CSRFProtect(app)
+csrf = CSRFProtect()
+csrf.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = True
