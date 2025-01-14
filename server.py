@@ -367,5 +367,41 @@ def checkout():
 
     return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
 
+
+@app.route('/complete_checkout', methods=['POST'])
+def complete_checkout():
+    # Retrieve form data
+    payment_method = request.form.get('payment_method')
+    address_line_1 = request.form.get('address_line_1')
+    address_line_2 = request.form.get('address_line_2')
+    postal_code = request.form.get('postal_code')
+    city = request.form.get('city')
+    phone = request.form.get('phone')
+
+    # Simulate item and order details
+    checkout_items = session.get('checkout_items', [])
+    items_data = {
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
+    }
+
+    # Calculate total cost
+    total_cost = 0
+    for item_id in checkout_items:
+        total_cost += items_data[int(item_id)]['price']
+
+    # Prepare ticket details for the confirmation page
+    ticket = {
+        'payment_method': payment_method,
+        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}",
+        'total_cost': total_cost,
+        'quantity': len(checkout_items),
+    }
+
+    # Redirect to the order confirmation page
+    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+
 if __name__ == '__main__':
     app.run(debug=True)
