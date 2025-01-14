@@ -28,7 +28,6 @@
                     <p>Please log in to view more details.</p>
                 {% endif %}
             </div>
-            
             {% endfor %}
         </div>
     </div>
@@ -45,6 +44,8 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             display: none; /* Initially hidden */
+            opacity: 1; /* For fade-out effect */
+            transition: opacity 2s ease; /* Smooth fade-out effect */
         }
     </style>
 
@@ -58,10 +59,13 @@
                 const popup = document.getElementById('popup-message');
                 popup.style.display = 'block'; // Show the popup
 
-                // Hide the popup after 5 seconds
+                // Start fade-out after 3 seconds
                 setTimeout(() => {
-                    popup.style.display = 'none';
-                }, 5000);
+                    popup.style.opacity = '0'; // Begin fade-out
+                    setTimeout(() => {
+                        popup.style.display = 'none'; // Hide completely after fade-out
+                    }, 2000); // Match the duration of the fade-out transition
+                }, 3000);
 
                 // Clean up the URL to remove the query parameter
                 const cleanUrl = window.location.origin + window.location.pathname;
@@ -69,5 +73,4 @@
             }
         });
     </script>
-    
 {% endblock %}

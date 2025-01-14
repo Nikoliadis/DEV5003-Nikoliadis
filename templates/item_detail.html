@@ -22,7 +22,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Redirect to the home page
+                    // Redirect directly to the home page with the query parameter
                     window.location.href = data.redirect_url;
                 }
             })
@@ -33,4 +33,3 @@
         });
     });
 </script>
-
