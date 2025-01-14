@@ -1,10 +1,90 @@
-<h1>{{ item['title'] }}</h1>
-<img src="{{ item['image'] }}" alt="{{ item['title'] }}" style="max-width: 300px;">
-<p>Price: ${{ item['price'] }}</p>
-<p>Description: {{ item['description'] }}</p>
-<form>
-    <button type="button" class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout</button>
-</form>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .item-container {
+        max-width: 700px;
+        margin: 20px;
+        padding: 25px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .item-container:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .item-container h1 {
+        font-size: 28px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .item-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .item-container p {
+        font-size: 18px;
+        color: #6c757d;
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    .add-to-checkout-btn {
+        display: inline-block;
+        background: linear-gradient(90deg, #6a11cb, #2575fc);
+        color: #fff;
+        border: none;
+        padding: 12px 30px;
+        font-size: 18px;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-to-checkout-btn:hover {
+        background: linear-gradient(90deg, #2575fc, #6a11cb);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .add-to-checkout-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<div class="item-container">
+    <h1>{{ item['title'] }}</h1>
+    <img src="{{ item['image'] }}" alt="{{ item['title'] }}">
+    <p><strong>Price:</strong> ${{ item['price'] }}</p>
+    <p><strong>Description:</strong> {{ item['description'] }}</p>
+    <form>
+        <button type="button" class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout</button>
+    </form>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -22,7 +102,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Redirect directly to the home page with the query parameter
                     window.location.href = data.redirect_url;
                 }
             })

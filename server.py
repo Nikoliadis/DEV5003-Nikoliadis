@@ -259,22 +259,56 @@ def buy_ticket():
 @app.route('/add_to_checkout', methods=['POST'])
 def add_to_checkout():
     item_id = request.json.get('item_id')
+    # Preserve the original structure while adding quantity management
     items = session.get('checkout_items', [])
-    items.append(item_id)
+    items.append(item_id)  # Append the item ID as in the original logic
     session['checkout_items'] = items
     return jsonify(success=True, message="Item added to checkout!", redirect_url=url_for('home', item_added='true'))
+
 
 @app.route('/get_checkout_items', methods=['GET'])
 def get_checkout_items():
     items_data = {
-        1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
-        2: { 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691' },
-        3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
-        4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
+        1: {'id': 1, 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'id': 2, 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'id': 3, 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'id': 4, 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'}
     }
     checkout_items = session.get('checkout_items', [])
-    items = [items_data[int(item_id)] for item_id in checkout_items]
-    return jsonify(items=items)
+    grouped_items = {}
+
+    for item_id in checkout_items:
+        item_id = int(item_id)  # Ensure integer IDs
+        if item_id in grouped_items:
+            grouped_items[item_id]['quantity'] += 1
+        else:
+            grouped_items[item_id] = {**items_data[item_id], 'quantity': 1}
+
+    return jsonify(items=list(grouped_items.values()))
+
+
+@app.route('/update_cart_quantity', methods=['POST'])
+def update_cart_quantity():
+    data = request.json
+    item_id = int(data['item_id'])
+    action = data['action']
+    checkout_items = session.get('checkout_items', [])
+    updated_items = []
+
+    # Adjust the quantity based on the action
+    for item in checkout_items:
+        if int(item) == item_id:
+            if action == 'increase':
+                updated_items.append(item)
+            elif action == 'decrease' and checkout_items.count(item) > 1:
+                updated_items.remove(item)  # Decrease by removing an instance
+        else:
+            updated_items.append(item)
+
+    session['checkout_items'] = updated_items
+    new_quantity = updated_items.count(str(item_id))
+    return jsonify(success=True, new_quantity=new_quantity)
+
 
 @app.route("/cart")
 @login_required

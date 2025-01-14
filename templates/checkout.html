@@ -1,43 +1,212 @@
 {% extends "base.html" %}
 
 {% block content %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
-</head>
-<body>
-    <div class="container">
-        <h2>Checkout</h2>
-        <div id="checkout-items"></div>
-        <button onclick="window.location.href='/add_to_checkout'">Add More Items</button>
-    </div>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Checkout</h2>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/get_checkout_items')
+    <!-- Two-Column Layout -->
+    <div class="row">
+        <!-- Left Column: Checkout Items -->
+        <div class="col-md-6">
+            <h4 class="mb-4">Your Items</h4>
+            <div id="checkout-items" class="mb-5">
+                <!-- Items will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Right Column: Payment and Contact Form -->
+        <div class="col-md-6">
+            <div class="p-4 shadow rounded bg-light">
+                <form method="POST" action="/complete_checkout">
+                    <!-- Payment Method -->
+                    <h4 class="mb-4 text-primary">Choose a Payment Option</h4>
+                    <div class="form-check">
+                        <input type="radio" id="in_museum" name="payment_method" value="In the Museum" class="form-check-input" checked>
+                        <label for="in_museum" class="form-check-label">In the Museum</label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input type="radio" id="credit_card" name="payment_method" value="Credit Card" class="form-check-input">
+                        <label for="credit_card" class="form-check-label">Credit Card</label>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h4 class="text-primary">Contact Information</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="address_line_1" class="form-label">Address Line 1</label>
+                            <input type="text" id="address_line_1" name="address_line_1" class="form-control" placeholder="123 Main Street" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="address_line_2" class="form-label">Address Line 2 (Optional)</label>
+                            <input type="text" id="address_line_2" name="address_line_2" class="form-control" placeholder="Apartment, Suite, etc.">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="postal_code" class="form-label">Postal Code</label>
+                            <input type="text" id="postal_code" name="postal_code" class="form-control" placeholder="12345" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" id="city" name="city" class="form-control" placeholder="City" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="text" id="phone" name="phone" class="form-control" placeholder="+1234567890" required>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Actions -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/events'">Continue Shopping</button>
+                        <button type="submit" class="btn btn-success">Complete Purchase</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* General Page Styling */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    h2, h4 {
+        font-weight: 700;
+        color: #343a40;
+    }
+
+    /* Card Styling */
+    .checkout-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .checkout-card img {
+        height: 80px;
+        width: auto;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .checkout-card h5 {
+        font-size: 18px;
+        color: #495057;
+        font-weight: 600;
+    }
+
+    .checkout-card p {
+        font-size: 16px;
+        margin-bottom: 0;
+        color: #6c757d;
+    }
+
+    /* Quantity Controls */
+    .update-quantity {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .quantity-display {
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    /* Payment Form Styling */
+    .form-check-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+    .btn-outline-primary {
+        border-color: #007bff;
+        color: #007bff;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #007bff;
+        color: #ffffff;
+    }
+</style>
+
+<!-- JavaScript Section -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/get_checkout_items')
             .then(response => response.json())
             .then(data => {
                 const checkoutItemsContainer = document.getElementById('checkout-items');
                 if (data.items.length === 0) {
-                    checkoutItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+                    checkoutItemsContainer.innerHTML = '<p class="text-center">Your cart is empty.</p>';
                 } else {
                     data.items.forEach(item => {
                         const itemHTML = `
-                            <div class="item">
-                                <h3>${item.title}</h3>
-                                <p>Price: $${item.price}</p>
-                                <img src="${item.image}" alt="${item.title}" width="200">
+                            <div class="checkout-card d-flex align-items-center justify-content-between border-bottom py-3 px-3 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="${item.image}" alt="${item.title}" style="margin-right: 15px;">
+                                    <div>
+                                        <h5 class="mb-1">${item.title}</h5>
+                                        <p class="mb-0">$${item.price}</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <button class="btn btn-outline-secondary btn-sm me-2 update-quantity" data-item-id="${item.id}" data-action="decrease">-</button>
+                                    <span class="fw-bold mx-2 quantity-display" data-item-id="${item.id}">${item.quantity}</span>
+                                    <button class="btn btn-outline-secondary btn-sm ms-2 update-quantity" data-item-id="${item.id}" data-action="increase">+</button>
+                                </div>
                             </div>
                         `;
                         checkoutItemsContainer.innerHTML += itemHTML;
                     });
+
+                    // Add event listeners for quantity update buttons
+                    document.querySelectorAll('.update-quantity').forEach(button => {
+                        button.addEventListener('click', function () {
+                            const itemId = this.getAttribute('data-item-id');
+                            const action = this.getAttribute('data-action');
+
+                            fetch('/update_cart_quantity', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ item_id: itemId, action: action })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        const quantityDisplay = document.querySelector(`.quantity-display[data-item-id="${itemId}"]`);
+                                        quantityDisplay.textContent = data.new_quantity;
+
+                                        if (data.new_quantity === 0) {
+                                            const itemCard = button.closest('.checkout-card');
+                                            itemCard.remove();
+                                        }
+                                    }
+                                })
+                                .catch(error => console.error('Error updating item quantity:', error));
+                        });
+                    });
                 }
             })
             .catch(error => console.error('Error fetching checkout items:', error));
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
 {% endblock %}
