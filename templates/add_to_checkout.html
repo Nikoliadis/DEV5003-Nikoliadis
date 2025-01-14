@@ -1,79 +1,91 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Dynamic item creation
-    const items = {
-        1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
-        2: { 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691' },
-        3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
-        4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
-    };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add to Checkout</title>
+    <style>
+        /* Style for the popup message */
+        #popup-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div id="items-container"></div>
 
-    // Dynamically render the items
-    const itemsContainer = document.getElementById("items-container");
-    Object.keys(items).forEach(itemId => {
-        const item = items[itemId];
-        const itemHTML = `
-            <div class="item">
-                <h3>${item.title}</h3>
-                <p>Price: $${item.price}</p>
-                <img src="${item.image}" alt="${item.title}" width="200">
-                <form method="POST" action="/add_to_cart/${itemId}">
-                    <button id="add-to-cart-btn-${itemId}" data-item-id="${itemId}">Add to Cart</button>
-                </form>
-                <button class="add-to-checkout-btn" data-item-id="${itemId}">Add to Checkout</button>
-            </div>
-        `;
-        itemsContainer.innerHTML += itemHTML;
+    <!-- Popup message -->
+    <div id="popup-message">Item added to checkout!</div>
 
-        // Add to Cart Button functionality
-        document.getElementById(`add-to-cart-btn-${itemId}`).addEventListener("click", function(event) {
-            event.preventDefault(); // Prevent form submission for AJAX handling
-            const itemId = this.getAttribute("data-item-id");
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = {
+                1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
+                2: { 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691' },
+                3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
+                4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
+            };
 
-            fetch(`/add_to_cart/${itemId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ "item_id": itemId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert(data.message); 
-                } else {
-                    alert(data.message); 
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred while adding to the cart.");
+            const itemsContainer = document.getElementById("items-container");
+
+            Object.keys(items).forEach(itemId => {
+                const item = items[itemId];
+                const itemHTML = `
+                    <div class="item">
+                        <h3>${item.title}</h3>
+                        <p>Price: $${item.price}</p>
+                        <img src="${item.image}" alt="${item.title}" width="200">
+                        <button class="add-to-checkout-btn" data-item-id="${itemId}">Add to Checkout</button>
+                    </div>
+                `;
+                itemsContainer.innerHTML += itemHTML;
+            });
+
+            // Add to Checkout Button functionality
+            document.querySelectorAll('.add-to-checkout-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-item-id');
+
+                    fetch('/add_to_checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ item_id: itemId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show the popup message
+                            const popup = document.getElementById('popup-message');
+                            popup.style.display = 'block';
+
+                            // Hide the popup message after 5 seconds
+                            setTimeout(() => {
+                                popup.style.display = 'none';
+                                // Redirect to the home page
+                                window.location.href = '/';
+                            }, 5000);
+                        } else {
+                            alert('Failed to add item to checkout.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while adding to checkout.');
+                    });
+                });
             });
         });
-
-        // Add to Checkout Button functionality
-        document.querySelector(`.add-to-checkout-btn[data-item-id="${itemId}"]`).addEventListener('click', function() {
-            const itemId = this.getAttribute('data-item-id');
-            const quantity = 1;  // Set the default quantity for adding to checkout (can be dynamic if needed)
-
-            fetch('/add_to_checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ item_id: itemId, quantity: quantity })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);  // Success message
-                } else {
-                    alert('Failed to add item to checkout.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while adding to checkout.');
-            });
-        });
-    });
-});
+    </script>
+</body>
+</html>

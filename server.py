@@ -256,42 +256,25 @@ def buy_ticket():
     flash(f"Successfully purchased {quantity} ticket(s) for {item['title']}! Total cost: ${total_cost}", 'success')
     return redirect(url_for('home'))
 
-@app.route("/add_to_checkout/<int:item_id>", methods=["POST"])
-@login_required
-def add_to_checkout(item_id):
-    # Define the items
-    items = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
+@app.route('/add_to_checkout', methods=['POST'])
+def add_to_checkout():
+    item_id = request.json.get('item_id')
+    items = session.get('checkout_items', [])
+    items.append(item_id)
+    session['checkout_items'] = items
+    return jsonify(success=True, message="Item added to checkout!", redirect_url=url_for('home', item_added='true'))
+
+@app.route('/get_checkout_items', methods=['GET'])
+def get_checkout_items():
+    items_data = {
+        1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
+        2: { 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691' },
+        3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
+        4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
     }
-
-    # Check if item exists
-    item = items.get(item_id)
-    if not item:
-        return jsonify({"success": False, "message": "Item not found"}), 404
-
-    # Handle AJAX (fetch) requests
-    if request.is_json:
-        data = request.get_json()
-        quantity = data.get('quantity', 1)  # Default to 1
-
-        # Retrieve current checkout items from session
-        checkout = session.get('checkout', [])
-        checkout.append({'item_id': item_id, 'quantity': quantity})
-        session['checkout'] = checkout
-
-        return jsonify({"success": True, "message": f"Item '{item['title']}' added to checkout."})
-
-    # Handle non-AJAX (regular) form submissions
-    checkout = session.get('checkout', [])
-    checkout.append({'item_id': item_id, 'quantity': 1})  # Default to 1
-    session['checkout'] = checkout
-
-    flash(f"Item '{item['title']}' added to checkout.", 'success')
-    return redirect(url_for('home'))
-
+    checkout_items = session.get('checkout_items', [])
+    items = [items_data[int(item_id)] for item_id in checkout_items]
+    return jsonify(items=items)
 
 @app.route("/cart")
 @login_required

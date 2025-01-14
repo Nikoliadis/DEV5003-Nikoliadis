@@ -2,45 +2,35 @@
 <img src="{{ item['image'] }}" alt="{{ item['title'] }}" style="max-width: 300px;">
 <p>Price: ${{ item['price'] }}</p>
 <p>Description: {{ item['description'] }}</p>
-
-<!-- Form to add item directly to checkout -->
-<form action="{{ url_for('add_to_checkout', item_id=item_id) }}" method="POST">
-    <button type="submit" class="btn btn-primary">Add to Checkout</button>
+<form>
+    <button type="button" class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout</button>
 </form>
 
-<!-- Add to Checkout Button with Fetch API (Optional for dynamic behavior) -->
-<button class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout via Fetch</button>
-
-<!-- JavaScript for Fetch API (Optional - Can be removed if you don’t need dynamic behavior) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const button = document.querySelector('.add-to-checkout-btn');
-        if (button) {
-            button.addEventListener('click', function() {
-                const itemId = this.getAttribute('data-item-id');
-                const quantity = 1;  // Set the default quantity for adding to checkout (can be dynamic if needed)
+        button.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
 
-                fetch('/add_to_checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ item_id: itemId, quantity: quantity })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);  // Success message
-                        // Optionally update checkout display dynamically
-                    } else {
-                        alert('Failed to add item to checkout.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while adding to checkout.');
-                });
+            fetch('/add_to_checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ item_id: itemId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to the home page
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding to checkout.');
             });
-        }
+        });
     });
 </script>
+

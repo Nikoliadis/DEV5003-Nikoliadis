@@ -32,4 +32,42 @@
             {% endfor %}
         </div>
     </div>
+
+    <style>
+        #popup-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Initially hidden */
+        }
+    </style>
+
+    <!-- Popup message -->
+    <div id="popup-message">Item added to checkout!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('item_added') === 'true') {
+                const popup = document.getElementById('popup-message');
+                popup.style.display = 'block'; // Show the popup
+
+                // Hide the popup after 5 seconds
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 5000);
+
+                // Clean up the URL to remove the query parameter
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        });
+    </script>
+    
 {% endblock %}
