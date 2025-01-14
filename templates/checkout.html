@@ -29,6 +29,29 @@
                         <label for="credit_card" class="form-check-label">Credit Card</label>
                     </div>
 
+                    <!-- Credit Card Details -->
+                    <div id="credit-card-details" class="mt-4" style="display: none;">
+                        <h4 class="text-primary">Credit Card Details</h4>
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label">Card Number</label>
+                            <input type="text" id="card_number" name="card_number" class="form-control" placeholder="1234-5678-9012-3456" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="card_name" class="form-label">Name on Card</label>
+                            <input type="text" id="card_name" name="card_name" class="form-control" placeholder="John Doe" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="exp_date" class="form-label">Expiration Date</label>
+                                <input type="text" id="exp_date" name="exp_date" class="form-control" placeholder="MM/YY" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" id="cvv" name="cvv" class="form-control" placeholder="123" required>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Contact Information -->
                     <h4 class="text-primary">Contact Information</h4>
                     <div class="row">
@@ -207,6 +230,48 @@
                 }
             })
             .catch(error => console.error('Error fetching checkout items:', error));
+
+        // Handle payment method toggle
+        const creditCardOption = document.getElementById('credit_card');
+        const inMuseumOption = document.getElementById('in_museum');
+        const creditCardDetails = document.getElementById('credit-card-details');
+        const cardNumberInput = document.getElementById('card_number');
+        const expDateInput = document.getElementById('exp_date');
+        const cvvInput = document.getElementById('cvv');
+
+        creditCardOption.addEventListener('change', function () {
+            if (this.checked) {
+                creditCardDetails.style.display = 'block';
+            }
+        });
+
+        inMuseumOption.addEventListener('change', function () {
+            if (this.checked) {
+                creditCardDetails.style.display = 'none';
+            }
+        });
+
+        // Format card number to add dashes every 4 digits
+        cardNumberInput.addEventListener('input', function () {
+            let value = this.value.replace(/\D/g, ''); // Remove non-digits
+            value = value.slice(0, 16); // Limit to 16 digits
+            this.value = value.replace(/(\d{4})(?=\d)/g, '$1-'); // Add dashes every 4 digits
+        });
+
+        // Format expiration date as MM/YY
+        expDateInput.addEventListener('input', function () {
+            let value = this.value.replace(/\D/g, ''); // Remove non-digits
+            value = value.slice(0, 4); // Limit to 4 digits
+            if (value.length > 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2); // Add slash
+            }
+            this.value = value;
+        });
+
+        // Restrict CVV to 3 digits
+        cvvInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 3); // Limit to 3 digits
+        });
     });
 </script>
 {% endblock %}
