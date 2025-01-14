@@ -34,9 +34,9 @@
                 3: { 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format' },
                 4: { 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s' }
             };
-
+    
             const itemsContainer = document.getElementById("items-container");
-
+    
             Object.keys(items).forEach(itemId => {
                 const item = items[itemId];
                 const itemHTML = `
@@ -49,12 +49,12 @@
                 `;
                 itemsContainer.innerHTML += itemHTML;
             });
-
+    
             // Add to Checkout Button functionality
             document.querySelectorAll('.add-to-checkout-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const itemId = this.getAttribute('data-item-id');
-
+    
                     fetch('/add_to_checkout', {
                         method: 'POST',
                         headers: {
@@ -68,7 +68,7 @@
                             // Show the popup message
                             const popup = document.getElementById('popup-message');
                             popup.style.display = 'block';
-
+    
                             // Hide the popup message after 5 seconds
                             setTimeout(() => {
                                 popup.style.display = 'none';
@@ -85,7 +85,24 @@
                     });
                 });
             });
+    
+            // Ensure correct behavior for form submission based on the payment method
+            document.querySelector('form').addEventListener('submit', function(event) {
+                const inMuseumOption = document.getElementById('in_museum');
+                const cardNumberInput = document.getElementById('card_number');
+                const expDateInput = document.getElementById('exp_date');
+                const cvvInput = document.getElementById('cvv');
+                const inMuseumSelected = inMuseumOption.checked;
+    
+                if (inMuseumSelected) {
+                    // Remove required attributes from credit card fields
+                    cardNumberInput.removeAttribute('required');
+                    expDateInput.removeAttribute('required');
+                    cvvInput.removeAttribute('required');
+                }
+            });
         });
     </script>
+    
 </body>
 </html>

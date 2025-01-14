@@ -370,38 +370,24 @@ def checkout():
 
 @app.route('/complete_checkout', methods=['POST'])
 def complete_checkout():
-    # Retrieve form data
     payment_method = request.form.get('payment_method')
-    address_line_1 = request.form.get('address_line_1')
-    address_line_2 = request.form.get('address_line_2')
-    postal_code = request.form.get('postal_code')
-    city = request.form.get('city')
-    phone = request.form.get('phone')
+    if payment_method == "In the Museum":
+        # Handle logic for "In the Museum" payment
+        # No credit card details required
+        return jsonify({"success": True, "message": "Purchase completed with 'In the Museum' payment method!"})
+    elif payment_method == "Credit Card":
+        card_number = request.form.get('card_number')
+        exp_date = request.form.get('exp_date')
+        cvv = request.form.get('cvv')
 
-    # Simulate item and order details
-    checkout_items = session.get('checkout_items', [])
-    items_data = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
-    }
+        # Validate credit card details
+        if not card_number or not exp_date or not cvv:
+            return jsonify({"success": False, "message": "Credit card details are incomplete!"}), 400
 
-    # Calculate total cost
-    total_cost = 0
-    for item_id in checkout_items:
-        total_cost += items_data[int(item_id)]['price']
-
-    # Prepare ticket details for the confirmation page
-    ticket = {
-        'payment_method': payment_method,
-        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}",
-        'total_cost': total_cost,
-        'quantity': len(checkout_items),
-    }
-
-    # Redirect to the order confirmation page
-    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+        # Proceed with the payment logic
+        return jsonify({"success": True, "message": "Credit card payment successful!"})
+    else:
+        return jsonify({"success": False, "message": "Invalid payment method!"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
