@@ -3,14 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect, CSRFError
 
 app = Flask(__name__)
-csrf = CSRFProtect()
-csrf.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['WTF_CSRF_ENABLED'] = True
 app.secret_key = 'laichi'
 
 db = SQLAlchemy(app)
@@ -296,12 +292,6 @@ def add_to_checkout(item_id):
     flash(f"Item '{item['title']}' added to checkout.", 'success')
     return redirect(url_for('home'))
 
-
-
-# Handle CSRF Errors Globally
-@app.errorhandler(CSRFError)
-def handle_csrf_error(e):
-    return jsonify({"success": False, "message": "CSRF token validation failed"}), 400
 
 @app.route("/cart")
 @login_required

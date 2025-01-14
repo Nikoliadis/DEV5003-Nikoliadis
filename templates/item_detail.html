@@ -5,7 +5,6 @@
 
 <!-- Form to add item directly to checkout -->
 <form action="{{ url_for('add_to_checkout', item_id=item_id) }}" method="POST">
-    {{ csrf_token() }}  <!-- CSRF token for security -->
     <button type="submit" class="btn btn-primary">Add to Checkout</button>
 </form>
 
@@ -24,8 +23,7 @@
                 fetch('/add_to_checkout', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'  <!-- CSRF token for security -->
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ item_id: itemId, quantity: quantity })
                 })

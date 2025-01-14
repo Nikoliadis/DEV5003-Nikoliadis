@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Ensure CSRF token is included in headers
-    const csrf_token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
     // Dynamic item creation
     const items = {
         1: { 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image' },
@@ -20,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>Price: $${item.price}</p>
                 <img src="${item.image}" alt="${item.title}" width="200">
                 <form method="POST" action="/add_to_cart/${itemId}">
-                    <input type="hidden" name="csrf_token" value="${csrf_token}">
                     <button id="add-to-cart-btn-${itemId}" data-item-id="${itemId}">Add to Cart</button>
                 </form>
                 <button class="add-to-checkout-btn" data-item-id="${itemId}">Add to Checkout</button>
@@ -36,8 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/add_to_cart/${itemId}`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrf_token // CSRF token for security
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ "item_id": itemId })
             })
@@ -63,8 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('/add_to_checkout', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrf_token // Add CSRF token in headers
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ item_id: itemId, quantity: quantity })
             })
