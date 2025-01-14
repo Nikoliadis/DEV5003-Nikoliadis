@@ -290,25 +290,25 @@ def get_checkout_items():
 @app.route('/update_cart_quantity', methods=['POST'])
 def update_cart_quantity():
     data = request.json
-    item_id = int(data['item_id'])
+    item_id = str(data['item_id'])  # Ensure item_id is treated as a string
     action = data['action']
+    
+    # Retrieve the checkout items from the session
     checkout_items = session.get('checkout_items', [])
-    updated_items = []
+    
+    if action == 'increase':
+        checkout_items.append(item_id)  # Add the item_id to increase quantity
+    elif action == 'decrease':
+        if item_id in checkout_items:
+            checkout_items.remove(item_id)  # Safely remove the item if it exists
+    
+    # Update the session with the modified checkout items
+    session['checkout_items'] = checkout_items
 
-    # Adjust the quantity based on the action
-    for item in checkout_items:
-        if int(item) == item_id:
-            if action == 'increase':
-                updated_items.append(item)
-            elif action == 'decrease' and checkout_items.count(item) > 1:
-                updated_items.remove(item)  # Decrease by removing an instance
-        else:
-            updated_items.append(item)
+    # Calculate the new quantity of the item
+    new_quantity = checkout_items.count(item_id)
 
-    session['checkout_items'] = updated_items
-    new_quantity = updated_items.count(str(item_id))
     return jsonify(success=True, new_quantity=new_quantity)
-
 
 @app.route("/cart")
 @login_required
