@@ -202,6 +202,11 @@ def submit_feedback():
     flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
     return redirect(url_for('feedback'))
 
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
 @app.route("/item/<int:item_id>")
 @login_required
 def item_detail(item_id):
