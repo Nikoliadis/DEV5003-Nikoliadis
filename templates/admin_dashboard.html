@@ -1,7 +1,13 @@
-<h1>Admin Dashboard</h1>
-<ul>
-    <li><a href="{{ url_for('add_news') }}">Add News</a></li>
-    <li><a href="{{ url_for('add_event') }}">Add Events</a></li>
-    <li><a href="{{ url_for('view_feedback') }}">View Feedback</a></li>
-    <li><a href="{{ url_for('view_messages') }}">View Contact Messages</a></li>
-</ul>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Dashboard</h2>
+    <div class="list-group">
+        <a href="{{ url_for('add_news') }}" class="list-group-item list-group-item-action">Add News</a>
+        <a href="{{ url_for('add_event') }}" class="list-group-item list-group-item-action">Add Upcoming Events</a>
+        <a href="{{ url_for('view_messages') }}" class="list-group-item list-group-item-action">View Contact Messages</a>
+        <a href="{{ url_for('view_feedback') }}" class="list-group-item list-group-item-action">View and Moderate Feedback</a>
+    </div>
+</div>
+{% endblock %}

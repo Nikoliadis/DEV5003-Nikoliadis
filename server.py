@@ -160,6 +160,7 @@ def add_event():
         return redirect(url_for('admin_dashboard'))
     return render_template('add_event.html')
 
+
 @app.route('/admin/feedback')
 @login_required
 @admin_required

@@ -1,6 +1,24 @@
-<h1>User Feedback</h1>
-<ul>
-    {% for feedback in feedbacks %}
-        <li>{{ feedback.feedback }} - {{ feedback.created_at }}</li>
-    {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>User Feedback</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Feedback</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feedback in feedbacks %}
+            <tr>
+                <td>{{ feedback.user_id }}</td>
+                <td>{{ feedback.feedback }}</td>
+                <td>{{ feedback.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
