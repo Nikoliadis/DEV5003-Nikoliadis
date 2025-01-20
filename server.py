@@ -145,31 +145,36 @@ def news():
 def events():
     events = [
         {
+            'item_id': 1,  # Add this field
             'title': 'Ancient Vase',
             'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
             'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
             'price': 25,
         },
         {
+            'item_id': 2,  # Add this field
             'title': 'Renaissance Painting',
             'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
             'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
             'price': 30,
         },
         {
+            'item_id': 3,  # Add this field
             'title': 'Ancient Sculpture',
             'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
             'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
             'price': 20,
         },
         {
+            'item_id': 4,  # Add this field
             'title': 'Impressionist Artwork',
             'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
             'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
             'price': 15,
-        }
+        },
     ]
     return render_template('events.html', events=events)
+
 
 @app.route("/exhibits")
 def exhibits():
@@ -230,9 +235,11 @@ def item_detail(item_id):
     item = items.get(item_id)
     if not item:
         flash("Item not found!", 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('events'))
 
     return render_template('item_detail.html', item=item, item_id=item_id)
+
+
 
 @app.route("/buy_ticket", methods=['POST'])
 @login_required

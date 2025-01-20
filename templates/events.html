@@ -19,7 +19,13 @@
                         <div class="event-card-body" style="padding: 20px;">
                             <h5 class="event-title" style="font-size: 20px; color: #007bff; font-weight: bold;">{{ event.title }}</h5>
                             <p class="event-description" style="font-size: 14px; color: #555;">{{ event.description }}</p>
-                            <button class="event-btn btn btn-primary" style="margin-top: 15px; width: 100%; border-radius: 5px; font-size: 16px;">Learn More</button>
+                            {% if event.item_id %}
+                                <!-- Valid item_id -->
+                                <a href="{{ url_for('item_detail', item_id=event.item_id) }}" class="btn btn-primary" style="margin-top: 15px; width: 100%; border-radius: 5px; font-size: 16px;">Learn More</a>
+                            {% else %}
+                                <!-- Fallback if item_id is missing -->
+                                <p class="text-muted text-center mt-3">Details unavailable</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
