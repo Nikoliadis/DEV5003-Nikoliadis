@@ -1,19 +1,74 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="exhibits-section">
-    <h2>Our Exhibits</h2>
-    <p>Discover the fascinating art and history displayed in our exhibits.</p>
-    <!-- Example grid or content -->
-    <div class="grid">
-        <div class="grid-item">
-            <h3>Exhibit 1: Ancient Artifacts</h3>
-            <p>A collection of rare ancient artifacts from various civilizations.</p>
+<div class="container mt-5">
+    <!-- Title Section -->
+    <div class="text-center">
+        <h2 class="fw-bold" style="font-family: 'Poppins', sans-serif; font-size: 36px; color: #333;">
+            Our Exhibits
+        </h2>
+        <p class="text-muted mt-2" style="font-size: 18px; max-width: 800px; margin: 0 auto;">
+            Discover the fascinating art and history displayed in our curated exhibits.
+        </p>
+    </div>
+
+    <!-- Exhibits Section -->
+    <div class="row mt-5 g-4">
+        <!-- Exhibit 1 -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+                <img src="https://images.ctfassets.net/cnu0m8re1exe/hfF30TQiZHCmCRnzTXXNo/969e0ea47b5958ea6db0147d89baba01/23785641449_afdaafc4ba_k.jpg" class="card-img-top" alt="Ancient Artifacts" style="height: 300px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #007bff;">Ancient Artifacts</h5>
+                    <p class="card-text text-muted" style="font-size: 14px;">
+                        A collection of rare ancient artifacts from various civilizations.
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="grid-item">
-            <h3>Exhibit 2: Renaissance Masterpieces</h3>
-            <p>Explore the finest paintings and sculptures from the Renaissance era.</p>
+
+        <!-- Exhibit 2 -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+                <img src="https://lovefromtuscany.com/wp-content/webpc-passthru.php?src=http://lovefromtuscany.com/wp-content/uploads/2019/05/644px-Raffaello_Sanzio_-_Madonna_del_Cardellino_-_Google_Art_Project.jpg&nocache=1" class="card-img-top" alt="Renaissance Masterpieces" style="height: 300px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title" style="font-family: 'Poppins', sans-serif; font-size: 20px; color: #007bff;">Renaissance Masterpieces</h5>
+                    <p class="card-text text-muted" style="font-size: 14px;">
+                        Explore the finest paintings and sculptures from the Renaissance era.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    h2 {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+        color: #007bff;
+        font-weight: 600;
+    }
+
+    .card-text {
+        color: #6c757d;
+        font-size: 14px;
+    }
+</style>
 {% endblock %}
