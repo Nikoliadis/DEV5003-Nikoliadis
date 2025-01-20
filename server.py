@@ -115,6 +115,16 @@ def register():
         # Add the user to the session and commit to the database
         db.session.add(new_user)
         db.session.commit()
+        
+        db.session.add(new_user)
+        try:
+            db.session.commit()
+            print("User added successfully!")
+        except Exception as e:
+            print(f"Error adding user to database: {e}")
+            db.session.rollback()
+            flash("An error occurred. Please try again.", "danger")
+            return redirect(url_for('register'))
 
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
@@ -202,14 +212,10 @@ def submit_feedback():
     flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
     return redirect(url_for('feedback'))
 
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-
 @app.route("/item/<int:item_id>")
 @login_required
 def item_detail(item_id):
+    # Dictionary of items
     items = {
         1: {
             'title': 'Ancient Vase',
@@ -237,13 +243,16 @@ def item_detail(item_id):
         },
     }
 
+    # Retrieve item by ID
     item = items.get(item_id)
+
+    # If the item does not exist, redirect to home with an error message
     if not item:
         flash("Item not found!", 'danger')
-        return redirect(url_for('events'))
+        return redirect(url_for('home'))
 
+    # Render the item detail page with the item data
     return render_template('item_detail.html', item=item, item_id=item_id)
-
 
 
 @app.route("/buy_ticket", methods=['POST'])
@@ -407,43 +416,13 @@ def complete_checkout():
     # Prepare ticket details for the confirmation page
     ticket = {
         'payment_method': payment_method,
-        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}" if payment_method == "Credit Card" else "N/A",
+        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}",
         'total_cost': total_cost,
         'quantity': len(checkout_items),
     }
 
-    # If no items are in the cart, redirect with an error message
-    if not checkout_items:
-        flash("Your cart is empty. Please add items to checkout.", "danger")
-        return redirect(url_for('cart'))
-
-    # Handle "In the Museum" payment method specifically
-    if payment_method == "In the Museum":
-        # Log for debugging purposes (optional)
-        print("Checkout completed with 'In the Museum' payment method.")
-
-        # Clear the session cart
-        session.pop('checkout_items', None)
-
-        # Redirect to the order confirmation page
-        return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
-
-    # Handle "Credit Card" payment method
-    if payment_method == "Credit Card":
-        if not all([address_line_1, postal_code, city, phone]):
-            flash("Please provide all required contact information.", "danger")
-            return redirect(url_for('checkout'))
-
-        # Clear the session cart
-        session.pop('checkout_items', None)
-
-        # Redirect to the order confirmation page
-        return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
-
-    # Fallback for invalid payment method
-    flash("Invalid payment method selected. Please try again.", "danger")
-    return redirect(url_for('checkout'))
-
+    # Redirect to the order confirmation page
+    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
 
 if __name__ == '__main__':
     app.run(debug=True)
