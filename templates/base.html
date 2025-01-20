@@ -38,25 +38,29 @@
 <body>
     <!-- Navigation Bar -->
 <!-- Navigation Bar -->
-<nav style="position: fixed; top: 0; width: 100%; background-color: #f8f9fa; z-index: 1000;">
-    <ul style="list-style: none; margin: 0; padding: 0; display: flex; justify-content: center;">
-        <li><a href="{{ url_for('home') }}" style="padding: 10px;">Home</a></li>
-        <li><a href="{{ url_for('news') }}" style="padding: 10px;">News</a></li>
-        <li><a href="{{ url_for('events') }}" style="padding: 10px;">Events</a></li>
-        <li><a href="{{ url_for('exhibits') }}" style="padding: 10px;">Exhibits</a></li>
-        <li><a href="{{ url_for('services') }}" style="padding: 10px;">Services</a></li>
-        <li><a href="{{ url_for('feedback') }}" style="padding: 10px;">Feedback</a></li>
-        <li><a href="{{ url_for('contact') }}" style="padding: 10px;">Contact Us</a></li>
-        <li><a href="{{ url_for('checkout', item_id=1) }}" style="padding: 10px;">Checkout</a></li>
+<nav style="position: fixed; top: 0; width: 100%; background-color: #f8f9fa; z-index: 1000; display: flex; align-items: center; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <ul style="list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 15px; justify-content: center;">
+        <li><a href="{{ url_for('home') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Home</a></li>
+        <li><a href="{{ url_for('news') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">News</a></li>
+        <li><a href="{{ url_for('events') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Events</a></li>
+        <li><a href="{{ url_for('exhibits') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Exhibits</a></li>
+        <li><a href="{{ url_for('services') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Services</a></li>
+        <li><a href="{{ url_for('feedback') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Feedback</a></li>
+        <li><a href="{{ url_for('contact') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Contact Us</a></li>
+        <li><a href="{{ url_for('checkout', item_id=1) }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Checkout</a></li>
+    </ul>
+
+    <ul style="list-style: none; margin: 0; padding: 0; display: flex; gap: 15px;">
         {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('profile') }}" style="padding: 10px;">Profile</a></li>
-            <li><a href="{{ url_for('logout') }}" style="padding: 10px;">Logout</a></li>
+            <li><a href="{{ url_for('profile') }}" style="padding: 10px; color: #007bff; text-decoration: none; font-weight: 500;">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" style="padding: 10px; color:rgb(220, 53, 69); text-decoration: none; font-weight: 500;">Logout</a></li>
         {% else %}
-            <li><a href="{{ url_for('login') }}" style="padding: 10px;">Login</a></li>
-            <li><a href="{{ url_for('register') }}" style="padding: 10px;">Register</a></li>
+            <li><a href="{{ url_for('login') }}" style="padding: 10px; color: rgb(220, 53, 69); text-decoration: none; font-weight: 500;">Login</a></li>
+            <li><a href="{{ url_for('register') }}" style="padding: 10px; color: #17a2b8; text-decoration: none; font-weight: 500;">Register</a></li>
         {% endif %}
     </ul>
 </nav>
+
 
 
     <div class="container" style="margin-top: 80px;">
