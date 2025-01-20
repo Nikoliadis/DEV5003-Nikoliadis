@@ -402,13 +402,43 @@ def complete_checkout():
     # Prepare ticket details for the confirmation page
     ticket = {
         'payment_method': payment_method,
-        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}",
+        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}" if payment_method == "Credit Card" else "N/A",
         'total_cost': total_cost,
         'quantity': len(checkout_items),
     }
 
-    # Redirect to the order confirmation page
-    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+    # If no items are in the cart, redirect with an error message
+    if not checkout_items:
+        flash("Your cart is empty. Please add items to checkout.", "danger")
+        return redirect(url_for('cart'))
+
+    # Handle "In the Museum" payment method specifically
+    if payment_method == "In the Museum":
+        # Log for debugging purposes (optional)
+        print("Checkout completed with 'In the Museum' payment method.")
+
+        # Clear the session cart
+        session.pop('checkout_items', None)
+
+        # Redirect to the order confirmation page
+        return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+
+    # Handle "Credit Card" payment method
+    if payment_method == "Credit Card":
+        if not all([address_line_1, postal_code, city, phone]):
+            flash("Please provide all required contact information.", "danger")
+            return redirect(url_for('checkout'))
+
+        # Clear the session cart
+        session.pop('checkout_items', None)
+
+        # Redirect to the order confirmation page
+        return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+
+    # Fallback for invalid payment method
+    flash("Invalid payment method selected. Please try again.", "danger")
+    return redirect(url_for('checkout'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

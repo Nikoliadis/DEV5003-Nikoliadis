@@ -231,7 +231,6 @@
             })
             .catch(error => console.error('Error fetching checkout items:', error));
 
-        // Handle payment method toggle
         const creditCardOption = document.getElementById('credit_card');
         const inMuseumOption = document.getElementById('in_museum');
         const creditCardDetails = document.getElementById('credit-card-details');
@@ -239,17 +238,19 @@
         const expDateInput = document.getElementById('exp_date');
         const cvvInput = document.getElementById('cvv');
 
-        creditCardOption.addEventListener('change', function () {
-            if (this.checked) {
+        // Handle payment method toggle
+        function togglePaymentMethod() {
+            if (creditCardOption.checked) {
                 creditCardDetails.style.display = 'block';
-            }
-        });
-
-        inMuseumOption.addEventListener('change', function () {
-            if (this.checked) {
+                document.querySelectorAll('#credit-card-details input').forEach(input => input.setAttribute('required', true));
+            } else if (inMuseumOption.checked) {
                 creditCardDetails.style.display = 'none';
+                document.querySelectorAll('#credit-card-details input').forEach(input => input.removeAttribute('required'));
             }
-        });
+        }
+
+        creditCardOption.addEventListener('change', togglePaymentMethod);
+        inMuseumOption.addEventListener('change', togglePaymentMethod);
 
         // Format card number to add dashes every 4 digits
         cardNumberInput.addEventListener('input', function () {
@@ -272,6 +273,15 @@
         cvvInput.addEventListener('input', function () {
             this.value = this.value.replace(/\D/g, '').slice(0, 3); // Limit to 3 digits
         });
+
+        // Ensure proper form submission based on selected payment method
+        document.querySelector('form').addEventListener('submit', function (event) {
+            togglePaymentMethod(); // Ensure the correct fields are required
+            console.log("Form submitted. Payment method:", inMuseumOption.checked ? "In the Museum" : "Credit Card");
+        });
+
+        // Initial state setup
+        togglePaymentMethod();
     });
 </script>
 {% endblock %}
