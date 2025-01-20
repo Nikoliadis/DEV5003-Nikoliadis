@@ -1,0 +1,6 @@
+<h1>Contact Messages</h1>
+<ul>
+    {% for message in messages %}
+        <li><strong>{{ message.name }}</strong>: {{ message.message }} ({{ message.created_at }})</li>
+    {% endfor %}
+</ul>

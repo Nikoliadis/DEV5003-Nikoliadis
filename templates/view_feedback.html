@@ -1,0 +1,6 @@
+<h1>User Feedback</h1>
+<ul>
+    {% for feedback in feedbacks %}
+        <li>{{ feedback.feedback }} - {{ feedback.created_at }}</li>
+    {% endfor %}
+</ul>

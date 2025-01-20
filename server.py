@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, json, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, json, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+from functools import wraps
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -28,6 +29,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         """Hash the password and set it to the database field."""
@@ -36,6 +38,32 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         """Check if the given password matches the stored hash."""
         return check_password_hash(self.password, password)
+    
+# Admin
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)  # Forbidden
+        return f(*args, **kwargs)
+    return decorated_function
+ 
+def create_admin_user():
+    with app.app_context():
+        admin_username = "Admin"
+        admin_email = "Admin@gmail.com"
+        admin_password = "Admin123!"
+
+        existing_admin = User.query.filter_by(username=admin_username).first()
+
+        if not existing_admin:
+            admin_user = User(username=admin_username, email=admin_email)
+            admin_user.set_password(admin_password)
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Admin user created successfully!")
+        else:
+            print("Admin user already exists.")
 
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,6 +73,34 @@ class Ticket(db.Model):
     payment_method = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(255), nullable=True)  # Only for credit card payments
     total_cost = db.Column(db.Float, nullable=False)  # Add total cost
+
+
+class News(db.Model):  # Correctly indented
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    feedback = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
 
 users = {}
 
@@ -69,6 +125,56 @@ def home():
     user_logged_in = 'user_id' in session 
     return render_template('home.html', featured_items=featured_items, user_logged_in=user_logged_in)
 
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
+
+@app.route('/admin/news', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_news():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        new_news = News(title=title, content=content)
+        db.session.add(new_news)
+        db.session.commit()
+        flash("News added successfully!", "success")
+        return redirect(url_for('admin_dashboard'))
+    return render_template('add_news.html')
+
+@app.route('/admin/events', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_event():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        date = request.form['date']
+        new_event = Event(title=title, description=description, date=date)
+        db.session.add(new_event)
+        db.session.commit()
+        flash("Event added successfully!", "success")
+        return redirect(url_for('admin_dashboard'))
+    return render_template('add_event.html')
+
+@app.route('/admin/feedback')
+@login_required
+@admin_required
+def view_feedback():
+    feedbacks = Feedback.query.all()
+    return render_template('view_feedback.html', feedbacks=feedbacks)
+
+@app.route('/admin/messages')
+@login_required
+@admin_required
+def view_messages():
+    messages = ContactMessage.query.all()
+    return render_template('view_messages.html', messages=messages)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -89,7 +195,10 @@ def login():
         # Check if user exists and password matches
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('home'))
+            if user.is_admin:
+                flash('Welcome, Admin!', 'success')
+                return redirect(url_for('admin_dashboard'))  # Redirect admin to the admin dashboard
+            return redirect(url_for('home'))  # Regular user redirection
         else:
             flash('Invalid email/username or password', 'danger')
 
@@ -387,6 +496,10 @@ def checkout():
             print(f"Unexpected cart_item format: {cart_item}")
 
     return render_template('checkout.html', cart_items=cart_items, total_price=total_price)
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 
 @app.route('/complete_checkout', methods=['POST'])
