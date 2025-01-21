@@ -2,12 +2,118 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Admin Dashboard</h2>
-    <div class="list-group">
-        <a href="{{ url_for('add_news') }}" class="list-group-item list-group-item-action">Add News</a>
-        <a href="{{ url_for('add_event') }}" class="list-group-item list-group-item-action">Add Upcoming Events</a>
-        <a href="{{ url_for('view_messages') }}" class="list-group-item list-group-item-action">View Contact Messages</a>
-        <a href="{{ url_for('view_feedback') }}" class="list-group-item list-group-item-action">View and Moderate Feedback</a>
+    <h1 class="text-center text-primary fw-bold display-4 mb-5">Admin Dashboard</h1>
+    <div class="row g-4">
+        <!-- Add News -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-lg h-100 rounded-lg">
+                <div class="card-body text-center">
+                    <div class="icon-container mb-4">
+                        <i class="bi bi-newspaper text-primary display-4"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Add News</h5>
+                    <p class="card-text text-muted">Publish and manage the latest updates effortlessly.</p>
+                    <a href="{{ url_for('add_news') }}" class="btn btn-outline-primary mt-3 px-4">Manage News</a>
+                </div>
+            </div>
+        </div>
+        <!-- Add Events -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-lg h-100 rounded-lg">
+                <div class="card-body text-center">
+                    <div class="icon-container mb-4">
+                        <i class="bi bi-calendar-event text-success display-4"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Add Events</h5>
+                    <p class="card-text text-muted">Create and schedule upcoming events seamlessly.</p>
+                    <a href="{{ url_for('add_event') }}" class="btn btn-outline-success mt-3 px-4">Manage Events</a>
+                </div>
+            </div>
+        </div>
+        <!-- View Messages -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-lg h-100 rounded-lg">
+                <div class="card-body text-center">
+                    <div class="icon-container mb-4">
+                        <i class="bi bi-envelope text-warning display-4"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">View Messages</h5>
+                    <p class="card-text text-muted">Review and respond to user messages with ease.</p>
+                    <a href="{{ url_for('view_messages') }}" class="btn btn-outline-warning mt-3 px-4">View Messages</a>
+                </div>
+            </div>
+        </div>
+        <!-- View Feedback -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-lg h-100 rounded-lg">
+                <div class="card-body text-center">
+                    <div class="icon-container mb-4">
+                        <i class="bi bi-chat-dots text-danger display-4"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Moderate Feedback</h5>
+                    <p class="card-text text-muted">Manage feedback to enhance user engagement.</p>
+                    <a href="{{ url_for('view_feedback') }}" class="btn btn-outline-danger mt-3 px-4">Moderate Feedback</a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .icon-container {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn {
+        font-weight: 600;
+        border-radius: 50px;
+    }
+
+    .btn:hover {
+        color: #fff !important;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #198754;
+    }
+
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        letter-spacing: 1px;
+    }
+
+    p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+</style>
 {% endblock %}
