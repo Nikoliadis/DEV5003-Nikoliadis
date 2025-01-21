@@ -157,10 +157,11 @@ def add_event():
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
-        date_str = request.form['date']  # Date as a string
+        date_str = request.form['date']
+        price = request.form.get('price')  # Get price from form
         image = request.files['image']
-        
-        # Convert the date string to a datetime.date object
+
+        # Convert date string to datetime.date
         try:
             event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
@@ -182,7 +183,8 @@ def add_event():
         new_event = Event(
             title=title,
             description=description,
-            date=event_date,  # Use the converted date object
+            date=event_date,
+            price=float(price) if price else None,  # Convert price to float
             image_path=image_path,
         )
         db.session.add(new_event)
@@ -190,6 +192,12 @@ def add_event():
         flash("Event added successfully!", "success")
         return redirect(url_for('admin_dashboard'))
     return render_template('add_event.html')
+
+@app.route('/event/<int:event_id>')
+def event_detail(event_id):
+    event = Event.query.get_or_404(event_id)
+    return render_template('event_detail.html', event=event)
+
 
 @app.route('/admin/feedback')
 @login_required
@@ -456,63 +464,55 @@ def submit_contact_message():
 @app.route("/item/<int:item_id>")
 @login_required
 def item_detail(item_id):
-    # Hardcoded items
-    items = {
-        1: {
-            'title': 'Ancient Vase',
-            'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
-            'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
-            'price': 25,
-        },
-        2: {
-            'title': 'Renaissance Painting',
-            'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
-            'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
-            'price': 30,
-        },
-        3: {
-            'title': 'Ancient Sculpture',
-            'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
-            'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
-            'price': 20,
-        },
-        4: {
-            'title': 'Impressionist Artwork',
-            'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
-            'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
-            'price': 15,
-        },
-    }
-
-    # Check if the item exists in hardcoded data
-    item = items.get(item_id)
-
-    # If not in hardcoded items, check the database
-    if not item:
-        event = Event.query.get(item_id)
-        if event:
-            item = {
-                'title': event.title,
-                'price': getattr(event, 'price', None),
-                'image_path': event.image_path,
-                'description': event.description,
-            }
-        else:
-            # Log the missing item and show an error page
-            print(f"Event with ID {item_id} not found.")
+    # First, check the database for the event.
+    event = Event.query.get(item_id)
+    if event:
+        # If the event exists in the database, render it.
+        item = {
+            'title': event.title,
+            'description': event.description,
+            'image_path': event.image_path,
+            'price': event.price,
+        }
+    else:
+        # Fallback: Check the hardcoded items.
+        items = {
+            1: {
+                'title': 'Ancient Vase',
+                'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
+                'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
+                'price': 25,
+            },
+            2: {
+                'title': 'Renaissance Painting',
+                'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
+                'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
+                'price': 30,
+            },
+            3: {
+                'title': 'Ancient Sculpture',
+                'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
+                'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
+                'price': 20,
+            },
+            4: {
+                'title': 'Impressionist Artwork',
+                'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
+                'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
+                'price': 15,
+            },
+        }
+        item = items.get(item_id)
+        if not item:
+            # If the item is neither in the database nor hardcoded, show a 404 error.
             flash("Item not found. Please check the ID and try again.", "danger")
             return redirect(url_for('events'))
 
-    # Adjust for rendering consistency
-    if 'image' in item:
+        # Adjust for rendering consistency
         item['image_path'] = item.pop('image')
 
     # Render the item detail page
     return render_template('item_detail.html', item=item, item_id=item_id)
-
-
-
-
 
 @app.route("/buy_ticket", methods=['POST'])
 @login_required

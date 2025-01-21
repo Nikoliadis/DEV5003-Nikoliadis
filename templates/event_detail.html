@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">{{ event.title }}</h1>
+    <div class="text-center mt-4">
+        <img src="{{ url_for('static', filename=event.image_path.split('static/')[1]) }}" alt="{{ event.title }}" class="img-fluid rounded" style="max-height: 400px;">
+    </div>
+    <p class="mt-4"><strong>Description:</strong> {{ event.description }}</p>
+    <p><strong>Date:</strong> {{ event.date.strftime('%B %d, %Y') }}</p>
+    {% if event.price %}
+    <p><strong>Price:</strong> ${{ event.price }}</p>
+    {% endif %}
+</div>
+{% endblock %}
