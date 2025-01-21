@@ -102,7 +102,7 @@ class Feedback(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     feedback = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
+    status = db.Column(db.String(20), default='unread')
 
 users = {}
 
@@ -168,13 +168,33 @@ def add_event():
 @admin_required
 def view_feedback():
     feedbacks = Feedback.query.all()
+    print(feedbacks)
     return render_template('view_feedback.html', feedbacks=feedbacks)
+
+@app.route('/admin/feedback/mark_read/<int:feedback_id>', methods=['POST'])
+@login_required
+@admin_required
+def mark_feedback_read(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+    feedback.status = 'read'
+    db.session.commit()
+    flash("Feedback marked as read.", "success")
+    return redirect(url_for('view_feedback'))
+
+@app.route('/admin/feedback/mark_unread/<int:feedback_id>', methods=['POST'])
+@login_required
+@admin_required
+def mark_feedback_unread(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+    feedback.status = 'unread'
+    db.session.commit()
+    flash("Feedback marked as unread.", "success")
+    return redirect(url_for('view_feedback'))
 
 @app.route('/admin/messages', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def view_messages():
-    # Check if the user wants to view archived messages
     show_archived = request.args.get('archived', 'false').lower() == 'true'
 
     if request.method == 'POST':
@@ -185,6 +205,8 @@ def view_messages():
         if message:
             if action == 'mark_read':
                 message.status = 'read'
+            elif action == 'mark_unread':
+                message.status = 'unread'
             elif action == 'archive':
                 message.status = 'archived'
             db.session.commit()
@@ -192,7 +214,6 @@ def view_messages():
         else:
             flash("Message not found.", "danger")
 
-    # Fetch messages based on the current view (archived or active)
     if show_archived:
         messages = ContactMessage.query.filter_by(status='archived').all()
     else:
@@ -210,7 +231,6 @@ def archive_message(message_id):
     db.session.commit()
     flash("Message archived successfully.", "success")
     return redirect(url_for('view_messages'))
-
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -348,15 +368,26 @@ def feedback():
         email = request.form.get('email')
         feedback_text = request.form.get('feedback')
 
-        flash("Thank You For Your Feedback! We Will Analyze It And If Necessary We Will Contact You Via Email", "success")
+        print(f"Received Feedback: {name}, {email}, {feedback_text}")
+
+        new_feedback = Feedback(user_id=current_user.id if current_user.is_authenticated else None,
+                                feedback=feedback_text)
+        db.session.add(new_feedback)
+        db.session.commit()
+
+        flash("Thank you for your feedback!", "success")
         return redirect(url_for('feedback'))
 
     return render_template('feedback.html')
 
+
 @app.route('/submit_feedback', methods=['POST'])
 def submit_feedback():
-    feedback = request.form['feedback']
-    flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
+    feedback_text = request.form['feedback']
+    new_feedback = Feedback(user_id=current_user.id if current_user.is_authenticated else None, feedback=feedback_text)
+    db.session.add(new_feedback)
+    db.session.commit()
+    flash('Thank you for your feedback!', 'success')
     return redirect(url_for('feedback'))
 
 @app.route('/submit_contact_message', methods=['POST'])

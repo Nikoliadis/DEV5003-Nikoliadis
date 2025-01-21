@@ -12,3 +12,10 @@ We Will Need To Deactivate Protection
 5. pip install flask_login
 6. pip install flask_migrate
 7. Finally We Run "python server.py" to run the site!
+
+
+Admin User Credentials
+
+Username: Admin
+Email: admin@gmail.com
+Password Admin123!

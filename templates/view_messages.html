@@ -41,18 +41,28 @@
                     </td>
                     {% if not show_archived %}
                     <td>
+                        {% if message.status != 'read' %}
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="message_id" value="{{ message.id }}">
                             <button type="submit" name="action" value="mark_read" 
                                     class="btn btn-success btn-sm me-1">
-                                <i class="bi bi-check-circle"></i> Mark as Read
+                                Mark as Read
                             </button>
                         </form>
+                        {% else %}
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="message_id" value="{{ message.id }}">
+                            <button type="submit" name="action" value="mark_unread" 
+                                    class="btn btn-warning btn-sm">
+                                Mark as Unread
+                            </button>
+                        </form>
+                        {% endif %}
                         <form method="POST" style="display: inline;">
                             <input type="hidden" name="message_id" value="{{ message.id }}">
                             <button type="submit" name="action" value="archive" 
                                     class="btn btn-secondary btn-sm">
-                                <i class="bi bi-archive"></i> Archive
+                                Archive
                             </button>
                         </form>
                     </td>
