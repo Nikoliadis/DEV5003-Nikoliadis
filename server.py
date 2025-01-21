@@ -94,6 +94,7 @@ class ContactMessage(db.Model):
     email = db.Column(db.String(120), nullable=False)
     message = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    status = db.Column(db.String(20), default='unread')
 
 
 class Feedback(db.Model):
@@ -169,13 +170,34 @@ def view_feedback():
     feedbacks = Feedback.query.all()
     return render_template('view_feedback.html', feedbacks=feedbacks)
 
-@app.route('/admin/messages')
+@app.route('/admin/messages', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def view_messages():
-    messages = ContactMessage.query.all()
-    print(messages)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        message_id = request.form.get('message_id')
+        message = ContactMessage.query.get(message_id)
+
+        if message:
+            if action == 'mark_read':
+                message.status = 'read'
+            elif action == 'archive':
+                message.status = 'archived'
+            db.session.commit()
+            flash(f"Message {action.replace('_', ' ')} successfully.", "success")
+        else:
+            flash("Message not found.", "danger")
+
+    messages = ContactMessage.query.filter(ContactMessage.status != 'archived').all()
     return render_template('view_messages.html', messages=messages)
+
+@app.route('/admin/messages/archived')
+@login_required
+@admin_required
+def view_archived_messages():
+    archived_messages = ContactMessage.query.filter_by(status='archived').all()
+    return render_template('archived_messages.html', messages=archived_messages)
 
 
 @app.route('/login', methods=['GET', 'POST'])

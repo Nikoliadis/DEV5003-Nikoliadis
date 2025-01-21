@@ -1,18 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-5">
     <h2>Contact Messages</h2>
-
-    <!-- Debugging Section -->
-    {% if not messages %}
-        <div class="alert alert-warning" role="alert">
-            No messages found or messages were not passed to the template.
-        </div>
-    {% endif %}
-
-    <!-- Messages Table -->
-    {% if messages and messages|length > 0 %}
+    {% if messages %}
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -20,6 +10,8 @@
                 <th>Email</th>
                 <th>Message</th>
                 <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -29,12 +21,23 @@
                 <td>{{ message.email or "N/A" }}</td>
                 <td>{{ message.message or "N/A" }}</td>
                 <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else "N/A" }}</td>
+                <td>{{ message.status.capitalize() }}</td>
+                <td>
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="message_id" value="{{ message.id }}">
+                        <button type="submit" name="action" value="mark_read" class="btn btn-sm btn-success">Mark as Read</button>
+                    </form>
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="message_id" value="{{ message.id }}">
+                        <button type="submit" name="action" value="archive" class="btn btn-sm btn-secondary">Archive</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p>No messages available at this time.</p>
+    <p>No messages available.</p>
     {% endif %}
 </div>
 {% endblock %}
