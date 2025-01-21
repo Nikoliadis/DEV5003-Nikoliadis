@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-5">
-    <h2>Contact Messages</h2>
+    <h2>{{ 'Archived Messages' if show_archived else 'Contact Messages' }}</h2>
+    
+    <!-- Button to Toggle Archived/Unarchived Messages -->
+    <a href="{{ url_for('view_messages', archived=not show_archived) }}" class="btn btn-{{ 'secondary' if show_archived else 'primary' }} mb-3">
+        {{ 'View Active Messages' if show_archived else 'View Archived Messages' }}
+    </a>
+
     {% if messages %}
     <table class="table table-bordered">
         <thead>
@@ -11,7 +17,9 @@
                 <th>Message</th>
                 <th>Date</th>
                 <th>Status</th>
+                {% if not show_archived %}
                 <th>Actions</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -20,8 +28,9 @@
                 <td>{{ message.name or "N/A" }}</td>
                 <td>{{ message.email or "N/A" }}</td>
                 <td>{{ message.message or "N/A" }}</td>
-                <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else "N/A" }}</td>
+                <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else 'N/A' }}</td>
                 <td>{{ message.status.capitalize() }}</td>
+                {% if not show_archived %}
                 <td>
                     <form method="POST" style="display: inline;">
                         <input type="hidden" name="message_id" value="{{ message.id }}">
@@ -32,12 +41,13 @@
                         <button type="submit" name="action" value="archive" class="btn btn-sm btn-secondary">Archive</button>
                     </form>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p>No messages available.</p>
+    <p>No {{ 'archived' if show_archived else 'active' }} messages available.</p>
     {% endif %}
 </div>
 {% endblock %}

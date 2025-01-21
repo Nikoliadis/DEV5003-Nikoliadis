@@ -174,6 +174,9 @@ def view_feedback():
 @login_required
 @admin_required
 def view_messages():
+    # Check if the user wants to view archived messages
+    show_archived = request.args.get('archived', 'false').lower() == 'true'
+
     if request.method == 'POST':
         action = request.form.get('action')
         message_id = request.form.get('message_id')
@@ -189,15 +192,25 @@ def view_messages():
         else:
             flash("Message not found.", "danger")
 
-    messages = ContactMessage.query.filter(ContactMessage.status != 'archived').all()
-    return render_template('view_messages.html', messages=messages)
+    # Fetch messages based on the current view (archived or active)
+    if show_archived:
+        messages = ContactMessage.query.filter_by(status='archived').all()
+    else:
+        messages = ContactMessage.query.filter(ContactMessage.status != 'archived').all()
 
-@app.route('/admin/messages/archived')
+    return render_template('view_messages.html', messages=messages, show_archived=show_archived)
+
+
+@app.route('/admin/messages/archive/<int:message_id>', methods=['POST'])
 @login_required
 @admin_required
-def view_archived_messages():
-    archived_messages = ContactMessage.query.filter_by(status='archived').all()
-    return render_template('archived_messages.html', messages=archived_messages)
+def archive_message(message_id):
+    message = ContactMessage.query.get_or_404(message_id)
+    message.status = 'archived'
+    db.session.commit()
+    flash("Message archived successfully.", "success")
+    return redirect(url_for('view_messages'))
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
