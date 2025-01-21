@@ -4,6 +4,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from functools import wraps
+import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -81,12 +83,13 @@ class News(db.Model):  # Correctly indented
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
+    image_path = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.Float, nullable=True)
 
 class ContactMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -154,14 +157,39 @@ def add_event():
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
-        date = request.form['date']
-        new_event = Event(title=title, description=description, date=date)
+        date_str = request.form['date']  # Date as a string
+        image = request.files['image']
+        
+        # Convert the date string to a datetime.date object
+        try:
+            event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Invalid date format. Please use YYYY-MM-DD.", "danger")
+            return redirect(url_for('add_event'))
+
+        # Save the image
+        upload_folder = 'static/uploads'
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        if image:
+            image_path = os.path.join(upload_folder, image.filename)
+            image.save(image_path)
+        else:
+            flash("Image upload failed. Please try again.", "danger")
+            return redirect(url_for('add_event'))
+
+        # Create the event
+        new_event = Event(
+            title=title,
+            description=description,
+            date=event_date,  # Use the converted date object
+            image_path=image_path,
+        )
         db.session.add(new_event)
         db.session.commit()
         flash("Event added successfully!", "success")
         return redirect(url_for('admin_dashboard'))
     return render_template('add_event.html')
-
 
 @app.route('/admin/feedback')
 @login_required
@@ -320,37 +348,57 @@ def news():
 
 @app.route('/events')
 def events():
-    events = [
+    # Fetch events from the database
+    events_from_db = Event.query.all()
+    
+    # Hardcoded events (update 'item_id' to 'id' for consistency)
+    hardcoded_events = [
         {
-            'item_id': 1,  # Add this field
+            'id': 1,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Vase',
-            'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
+            'image_path': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
             'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
             'price': 25,
         },
         {
-            'item_id': 2,  # Add this field
+            'id': 2,  # Changed from 'item_id' to 'id'
             'title': 'Renaissance Painting',
-            'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
+            'image_path': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
             'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
             'price': 30,
         },
         {
-            'item_id': 3,  # Add this field
+            'id': 3,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Sculpture',
-            'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
+            'image_path': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
             'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
             'price': 20,
         },
         {
-            'item_id': 4,  # Add this field
+            'id': 4,  # Changed from 'item_id' to 'id'
             'title': 'Impressionist Artwork',
-            'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
+            'image_path': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
             'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
             'price': 15,
         },
     ]
+    
+
+    # Combine both hardcoded events and database events
+    events = hardcoded_events + [
+        {
+            'id': event.id,  # Use 'id' from the database
+            'title': event.title,
+            'image_path': event.image_path,
+            'description': event.description,
+            'price': getattr(event, 'price', None),  # Include price if it exists
+        }
+        for event in events_from_db
+    ]
+    
     return render_template('events.html', events=events)
+
+
 
 
 @app.route("/exhibits")
@@ -408,7 +456,7 @@ def submit_contact_message():
 @app.route("/item/<int:item_id>")
 @login_required
 def item_detail(item_id):
-    # Dictionary of items
+    # Hardcoded items
     items = {
         1: {
             'title': 'Ancient Vase',
@@ -436,16 +484,34 @@ def item_detail(item_id):
         },
     }
 
-    # Retrieve item by ID
+    # Check if the item exists in hardcoded data
     item = items.get(item_id)
 
-    # If the item does not exist, redirect to home with an error message
+    # If not in hardcoded items, check the database
     if not item:
-        flash("Item not found!", 'danger')
-        return redirect(url_for('home'))
+        event = Event.query.get(item_id)
+        if event:
+            item = {
+                'title': event.title,
+                'price': getattr(event, 'price', None),
+                'image_path': event.image_path,
+                'description': event.description,
+            }
+        else:
+            # Log the missing item and show an error page
+            print(f"Event with ID {item_id} not found.")
+            flash("Item not found. Please check the ID and try again.", "danger")
+            return redirect(url_for('events'))
 
-    # Render the item detail page with the item data
+    # Adjust for rendering consistency
+    if 'image' in item:
+        item['image_path'] = item.pop('image')
+
+    # Render the item detail page
     return render_template('item_detail.html', item=item, item_id=item_id)
+
+
+
 
 
 @app.route("/buy_ticket", methods=['POST'])
