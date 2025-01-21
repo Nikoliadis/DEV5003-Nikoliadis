@@ -7,6 +7,7 @@ from functools import wraps
 import os
 from datetime import datetime
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -77,11 +78,13 @@ class Ticket(db.Model):
     total_cost = db.Column(db.Float, nullable=False)  # Add total cost
 
 
-class News(db.Model):  # Correctly indented
+class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    image_path = db.Column(db.String(255), nullable=False) 
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -143,12 +146,23 @@ def add_news():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        new_news = News(title=title, content=content)
+        image = request.files['image']
+
+        # Save the uploaded image to the static/uploads directory
+        if image:
+            image_path = f"static/uploads/{image.filename}"
+            image.save(image_path)
+
+        # Add the news to the database
+        new_news = News(title=title, content=content, image_path=image_path)
         db.session.add(new_news)
         db.session.commit()
+
         flash("News added successfully!", "success")
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('news'))
+
     return render_template('add_news.html')
+
 
 @app.route('/admin/events', methods=['GET', 'POST'])
 @login_required
@@ -352,7 +366,9 @@ def about():
 
 @app.route("/news")
 def news():
-    return render_template('news.html')
+    news_items = News.query.all()  # Fetch all news from the database
+    return render_template('news.html', news_items=news_items)
+
 
 @app.route('/events')
 def events():
@@ -511,7 +527,6 @@ def item_detail(item_id):
 
     # Render the item detail page
     return render_template('item_detail.html', item=item, item_id=item_id)
-
 
 
 

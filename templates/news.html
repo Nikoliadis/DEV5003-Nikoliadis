@@ -14,7 +14,7 @@
 
     <!-- News Grid Section -->
     <div class="row mt-5 g-4">
-        <!-- Item 1 -->
+        <!-- Static News Items -->
         <div class="col-md-6">
             <div class="card border-0 shadow" style="border-radius: 12px; overflow: hidden; height: 450px;">
                 <img src="https://ids.si.edu/ids/deliveryService?id=SAAM-2022.44.2A-C_1&max=640" class="card-img-top" alt="New Acquisitions" style="height: 300px; object-fit: cover;">
@@ -27,7 +27,6 @@
             </div>
         </div>
 
-        <!-- Item 2 -->
         <div class="col-md-6">
             <div class="card border-0 shadow" style="border-radius: 12px; overflow: hidden; height: 450px;">
                 <img src="https://parrishart.org/wp-content/uploads/2019/01/IMG_0484-1400x1225.jpg" class="card-img-top" alt="Upcoming Art Talk" style="height: 300px; object-fit: cover;">
@@ -39,6 +38,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Dynamic News Items -->
+        {% for news in news_items %}
+        <div class="col-md-6">
+            <div class="card border-0 shadow" style="border-radius: 12px; overflow: hidden; height: 450px;">
+                <img src="{{ url_for('static', filename=news.image_path.split('static/')[1]) }}" 
+                     class="card-img-top" 
+                     alt="{{ news.title }}" 
+                     style="height: 300px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ news.title }}</h5>
+                    <p class="card-text text-muted">{{ news.content }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
