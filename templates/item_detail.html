@@ -78,11 +78,8 @@
 
 <div class="item-container">
     <h1>{{ item.title }}</h1>
-    <img src="{{ item.image_path }}" alt="{{ item.title }}" class="img-fluid">
+    <img src="{{ item.image_path }}" alt="{{ item.title }}">
     <p><strong>Description:</strong> {{ item.description }}</p>
-    {% if item.price %}
-    <p><strong>Price:</strong> ${{ item.price }}</p>
-    {% endif %}
     <form>
         <button type="button" class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout</button>
     </form>
@@ -105,8 +102,6 @@
             .then(data => {
                 if (data.success) {
                     window.location.href = data.redirect_url;
-                } else {
-                    alert('Failed to add item to checkout.');
                 }
             })
             .catch(error => {
