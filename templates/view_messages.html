@@ -1,7 +1,18 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-5">
     <h2>Contact Messages</h2>
+
+    <!-- Debugging Section -->
+    {% if not messages %}
+        <div class="alert alert-warning" role="alert">
+            No messages found or messages were not passed to the template.
+        </div>
+    {% endif %}
+
+    <!-- Messages Table -->
+    {% if messages and messages|length > 0 %}
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -14,13 +25,16 @@
         <tbody>
             {% for message in messages %}
             <tr>
-                <td>{{ message.name }}</td>
-                <td>{{ message.email }}</td>
-                <td>{{ message.message }}</td>
-                <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ message.name or "N/A" }}</td>
+                <td>{{ message.email or "N/A" }}</td>
+                <td>{{ message.message or "N/A" }}</td>
+                <td>{{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else "N/A" }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p>No messages available at this time.</p>
+    {% endif %}
 </div>
 {% endblock %}

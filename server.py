@@ -95,6 +95,7 @@ class ContactMessage(db.Model):
     message = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
@@ -173,6 +174,7 @@ def view_feedback():
 @admin_required
 def view_messages():
     messages = ContactMessage.query.all()
+    print(messages)
     return render_template('view_messages.html', messages=messages)
 
 
@@ -321,6 +323,21 @@ def submit_feedback():
     feedback = request.form['feedback']
     flash('Thank you for your feedback! We will analyze it and if necessary, we will contact you via email.', 'success')
     return redirect(url_for('feedback'))
+
+@app.route('/submit_contact_message', methods=['POST'])
+def submit_contact_message():
+    name = request.form['name']
+    email = request.form['email']
+    message_text = request.form['message']
+
+    # Create a new ContactMessage instance
+    new_message = ContactMessage(name=name, email=email, message=message_text)
+    db.session.add(new_message)
+    db.session.commit()
+
+    flash("Thank you for your message! We'll get back to you soon.", "success")
+    return redirect(url_for('contact'))
+
 
 @app.route("/item/<int:item_id>")
 @login_required
