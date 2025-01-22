@@ -229,53 +229,6 @@ def add_event():
     events = Event.query.all()
     return render_template('add_event.html', events=events)
 
-def add_hardcoded_items():
-    """Ensure hardcoded items exist in the database."""
-    hardcoded_items = [
-        {
-            'title': 'Ancient Vase',
-            'description': 'A rare ancient vase from the 4th century.',
-            'price': 25,
-            'image_path': 'static/uploads/ancient_vase.jpg',
-            'date': datetime.now().date()
-        },
-        {
-            'title': 'Renaissance Painting',
-            'description': 'A beautiful painting from the Renaissance period.',
-            'price': 30,
-            'image_path': 'static/uploads/renaissance_painting.jpg',
-            'date': datetime.now().date()
-        },
-        {
-            'title': 'Ancient Sculpture',
-            'description': 'A rare sculpture from Ancient Rome.',
-            'price': 20,
-            'image_path': 'static/uploads/ancient_sculpture.jpg',
-            'date': datetime.now().date()
-        },
-        {
-            'title': 'Impressionist Artwork',
-            'description': 'A beautiful painting from the Impressionist era.',
-            'price': 15,
-            'image_path': 'static/uploads/impressionist_artwork.jpg',
-            'date': datetime.now().date()
-        }
-    ]
-
-    for item in hardcoded_items:
-        existing_item = Event.query.filter_by(title=item['title']).first()
-        if not existing_item:
-            new_item = Event(
-                title=item['title'],
-                description=item['description'],
-                price=item['price'],
-                image_path=item['image_path'],
-                date=item['date']
-            )
-            db.session.add(new_item)
-    db.session.commit()
-    print("Hardcoded items added to the database.")
-
 
 @app.route('/event/<int:event_id>')
 def event_detail(event_id):
@@ -643,42 +596,23 @@ def add_to_checkout():
 
 @app.route('/get_checkout_items', methods=['GET'])
 def get_checkout_items():
-    hardcoded_items = {
-        "H1": {'id': "H1", 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        "H2": {'id': "H2", 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        "H3": {'id': "H3", 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        "H4": {'id': "H4", 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+    items_data = {
+        1: {'id': 1, 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'id': 2, 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'id': 3, 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'id': 4, 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'}
     }
-
     checkout_items = session.get('checkout_items', [])
     grouped_items = {}
 
     for item_id in checkout_items:
-        if item_id.startswith("H"):  # Check for hardcoded item
-            item = hardcoded_items.get(item_id)
-        else:
-            # Query the database for non-hardcoded item
-            event = Event.query.get(int(item_id))
-            if event:
-                item = {
-                    'id': event.id,
-                    'title': event.title,
-                    'price': event.price,
-                    'image': url_for('static', filename=event.image_path.split('static/')[1]),
-                }
-            else:
-                # Skip items that don't exist in the database
-                print(f"Warning: Event with ID {item_id} not found.")
-                continue
-
-        # Group items by ID and count their quantity
+        item_id = int(item_id)  # Ensure integer IDs
         if item_id in grouped_items:
             grouped_items[item_id]['quantity'] += 1
         else:
-            grouped_items[item_id] = {**item, 'quantity': 1}
+            grouped_items[item_id] = {**items_data[item_id], 'quantity': 1}
 
     return jsonify(items=list(grouped_items.values()))
-
 
 
 @app.route('/update_cart_quantity', methods=['POST'])
@@ -776,44 +710,19 @@ def complete_checkout():
     city = request.form.get('city')
     phone = request.form.get('phone')
 
-    # Define hardcoded items
-    hardcoded_items = {
-        "H1": {'id': "H1", 'title': 'Ancient Vase', 'price': 25},
-        "H2": {'id': "H2", 'title': 'Renaissance Painting', 'price': 30},
-        "H3": {'id': "H3", 'title': 'Ancient Sculpture', 'price': 20},
-        "H4": {'id': "H4", 'title': 'Impressionist Artwork', 'price': 15},
-    }
-
-    # Fetch checkout items from the session
+    # Simulate item and order details
     checkout_items = session.get('checkout_items', [])
+    items_data = {
+        1: {'title': 'Ancient Vase', 'price': 25},
+        2: {'title': 'Renaissance Painting', 'price': 30},
+        3: {'title': 'Ancient Sculpture', 'price': 20},
+        4: {'title': 'Impressionist Artwork', 'price': 15},
+    }
 
     # Calculate total cost
     total_cost = 0
-    first_item = None
-    for idx, item_id in enumerate(checkout_items):
-        if item_id.startswith("H"):
-            # Use hardcoded items for IDs starting with "H"
-            item = hardcoded_items.get(item_id)
-        else:
-            # Query database for other item IDs
-            event = Event.query.get(int(item_id))
-            if event:
-                item = {
-                    'id': event.id,
-                    'title': event.title,
-                    'price': event.price,
-                    'image': url_for('static', filename=event.image_path.split('static/')[1]),
-                }
-            else:
-                print(f"Warning: Event with ID {item_id} not found.")
-                continue
-
-        # Add item price to total cost
-        total_cost += item['price']
-
-        # Save the first item for the confirmation page
-        if idx == 0:
-            first_item = item
+    for item_id in checkout_items:
+        total_cost += items_data[int(item_id)]['price']
 
     # Prepare ticket details for the confirmation page
     ticket = {
@@ -823,17 +732,8 @@ def complete_checkout():
         'quantity': len(checkout_items),
     }
 
-    # Clear the checkout items from the session
-    session['checkout_items'] = []
-
-    # Render the order confirmation page
-    return render_template('order_confirmation.html', ticket=ticket, item=first_item)
-
-
-# At the very end of server.py
+    # Redirect to the order confirmation page
+    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
 
 if __name__ == '__main__':
-    with app.app_context():
-        create_admin_user()
-        add_hardcoded_items()
     app.run(debug=True)
