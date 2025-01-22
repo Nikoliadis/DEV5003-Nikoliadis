@@ -16,6 +16,44 @@
             <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
         </div>
         <button type="submit" class="btn btn-primary">Add News</button>
-    </form>    
+    </form>
+</div>
+
+<div class="container mt-5">
+    <h2>Manage News</h2>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Content</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for news in news_items %}
+            <tr>
+                <td>{{ news.title }}</td>
+                <td>{{ news.content }}</td>
+                <td>
+                    {% if news.image_path %}
+                    <img src="{{ url_for('static', filename=news.image_path.split('static/')[1]) }}" 
+                         alt="News Image" style="width: 100px; height: auto;">
+                    {% else %}
+                    No Image
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_news', news_id=news.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if not news_items %}
+    <p class="text-center">No news available.</p>
+    {% endif %}
 </div>
 {% endblock %}

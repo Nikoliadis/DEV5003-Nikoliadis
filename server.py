@@ -82,7 +82,7 @@ class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    image_path = db.Column(db.String(255), nullable=False) 
+    image_path = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 
@@ -159,9 +159,28 @@ def add_news():
         db.session.commit()
 
         flash("News added successfully!", "success")
-        return redirect(url_for('news'))
+        return redirect(url_for('add_news'))
 
-    return render_template('add_news.html')
+    # Fetch all news items from the database to display in the Manage News section
+    news_items = News.query.all()
+    print(news_items)
+    return render_template('add_news.html', news_items=news_items)
+
+
+@app.route('/delete_news/<int:news_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_news(news_id):
+    news = News.query.get_or_404(news_id)  # Find the news item by ID or return 404
+    if news.image_path:
+        try:
+            os.remove(news.image_path)  # Remove the associated image file
+        except FileNotFoundError:
+            pass  # Ignore if the file does not exist
+    db.session.delete(news)  # Delete the news item
+    db.session.commit()  # Commit changes to the database
+    flash('News deleted successfully!', 'success')  # Show success message
+    return redirect(url_for('add_news'))  # Redirect back to the Add News page
 
 
 @app.route('/admin/events', methods=['GET', 'POST'])
@@ -172,7 +191,7 @@ def add_event():
         title = request.form['title']
         description = request.form['description']
         date_str = request.form['date']
-        price = request.form.get('price')  # Get price from form
+        price = request.form.get('price')  # Get price from the form
         image = request.files['image']
 
         # Convert date string to datetime.date
@@ -198,20 +217,33 @@ def add_event():
             title=title,
             description=description,
             date=event_date,
-            price=float(price) if price else None,  # Convert price to float
+            price=float(price) if price else None,
             image_path=image_path,
         )
         db.session.add(new_event)
         db.session.commit()
         flash("Event added successfully!", "success")
-        return redirect(url_for('admin_dashboard'))
-    return render_template('add_event.html')
+        return redirect(url_for('add_event'))
+
+    # Fetch all events to display in the Manage Events section
+    events = Event.query.all()
+    return render_template('add_event.html', events=events)
+
 
 @app.route('/event/<int:event_id>')
 def event_detail(event_id):
     event = Event.query.get_or_404(event_id)
     return render_template('event_detail.html', event=event)
 
+@app.route('/admin/events/delete/<int:event_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    db.session.delete(event)
+    db.session.commit()
+    flash("Event deleted successfully!", "success")
+    return redirect(url_for('add_event'))
 
 @app.route('/admin/feedback')
 @login_required

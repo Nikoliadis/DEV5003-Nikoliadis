@@ -25,5 +25,36 @@
         </div>
         <button type="submit" class="btn btn-primary mt-3">Add Event</button>
     </form>
+
+    <hr class="my-5">
+
+    <h2>Manage Events</h2>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Price (USD)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.date }}</td>
+                <td>{{ event.price }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_event', event_id=event.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if not events %}
+    <p class="text-center">No events available.</p>
+    {% endif %}
 </div>
 {% endblock %}
