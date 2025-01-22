@@ -410,28 +410,28 @@ def events():
     # Hardcoded events (update 'item_id' to 'id' for consistency)
     hardcoded_events = [
         {
-            'id': 'H1',  # Changed from 'item_id' to 'id'
+            'id': 1,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Vase',
             'image_path': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
             'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
             'price': 25,
         },
         {
-            'id': 'H2',  # Changed from 'item_id' to 'id'
+            'id': 2,  # Changed from 'item_id' to 'id'
             'title': 'Renaissance Painting',
             'image_path': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
             'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
             'price': 30,
         },
         {
-            'id': 'H3',  # Changed from 'item_id' to 'id'
+            'id': 3,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Sculpture',
             'image_path': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
             'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
             'price': 20,
         },
         {
-            'id': 'H4',  # Changed from 'item_id' to 'id'
+            'id': 4,  # Changed from 'item_id' to 'id'
             'title': 'Impressionist Artwork',
             'image_path': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
             'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
@@ -439,18 +439,19 @@ def events():
         },
     ]
     
-    db_events = Event.query.all()
+
     # Combine both hardcoded events and database events
     events = hardcoded_events + [
         {
-            'id': event.id,
+            'id': event.id,  # Use 'id' from the database
             'title': event.title,
             'image_path': event.image_path,
             'description': event.description,
-            'price': event.price,
+            'price': getattr(event, 'price', None),  # Include price if it exists
         }
-        for event in db_events
+        for event in events_from_db
     ]
+    
     return render_template('events.html', events=events)
 
 
@@ -508,23 +509,43 @@ def submit_contact_message():
     return redirect(url_for('contact'))
 
 
-@app.route("/item/<string:item_id>")
+@app.route("/item/<int:item_id>")
 @login_required
 def item_detail(item_id):
-    # Check if the item ID is prefixed for hardcoded items
-    if item_id.startswith("H"):
-        hardcoded_items = {
-            "H1": {'title': 'Ancient Vase', 'price': 25, 'image_path': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image', 'description': 'A rare ancient vase from the 4th century.'},
-            "H2": {'title': 'Renaissance Painting', 'price': 30, 'image_path': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691', 'description': 'A beautiful painting from the Renaissance period.'},
-            "H3": {'title': 'Ancient Sculpture', 'price': 20, 'image_path': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format', 'description': 'A rare sculpture from Ancient Rome.'},
-            "H4": {'title': 'Impressionist Artwork', 'price': 15, 'image_path': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s', 'description': 'A beautiful painting from the Impressionist era.'},
-        }
-        item = hardcoded_items.get(item_id)
-        if not item:
-            abort(404)
-    else:
-        # Look for the event in the database
-        event = Event.query.get_or_404(int(item_id))
+    # Hardcoded items
+    items = {
+        1: {
+            'title': 'Ancient Vase',
+            'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
+            'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
+            'price': 25,
+        },
+        2: {
+            'title': 'Renaissance Painting',
+            'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
+            'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
+            'price': 30,
+        },
+        3: {
+            'title': 'Ancient Sculpture',
+            'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
+            'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
+            'price': 20,
+        },
+        4: {
+            'title': 'Impressionist Artwork',
+            'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
+            'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
+            'price': 15,
+        },
+    }
+
+    # Check if the item exists in hardcoded data
+    item = items.get(item_id)
+
+    # If not in hardcoded items, check the database
+    if not item:
+        event = Event.query.get_or_404(item_id)
         item = {
             'title': event.title,
             'price': getattr(event, 'price', None),
@@ -532,8 +553,12 @@ def item_detail(item_id):
             'description': event.description,
         }
 
-    return render_template('item_detail.html', item=item, item_id=item_id)
+    # Adjust for rendering consistency
+    if 'image' in item:
+        item['image_path'] = item.pop('image')
 
+    # Render the item detail page
+    return render_template('item_detail.html', item=item, item_id=item_id)
 
 
 
@@ -562,11 +587,11 @@ def buy_ticket():
 @app.route('/add_to_checkout', methods=['POST'])
 def add_to_checkout():
     item_id = request.json.get('item_id')
+    # Preserve the original structure while adding quantity management
     items = session.get('checkout_items', [])
-    items.append(item_id)  # Store ID as-is (with prefixes for hardcoded items)
+    items.append(item_id)  # Append the item ID as in the original logic
     session['checkout_items'] = items
     return jsonify(success=True, message="Item added to checkout!", redirect_url=url_for('home', item_added='true'))
-
 
 
 @app.route('/get_checkout_items', methods=['GET'])
@@ -582,17 +607,24 @@ def get_checkout_items():
     grouped_items = {}
 
     for item_id in checkout_items:
-        if item_id.startswith("H"):
+        if item_id.startswith("H"):  # Check for hardcoded item
             item = hardcoded_items.get(item_id)
         else:
+            # Query the database for non-hardcoded item
             event = Event.query.get(int(item_id))
-            item = {
-                'id': event.id,
-                'title': event.title,
-                'price': event.price,
-                'image': event.image_path,
-            }
+            if event:
+                item = {
+                    'id': event.id,
+                    'title': event.title,
+                    'price': event.price,
+                    'image': url_for('static', filename=event.image_path.split('static/')[1]),
+                }
+            else:
+                # Skip items that don't exist in the database
+                print(f"Warning: Event with ID {item_id} not found.")
+                continue
 
+        # Group items by ID and count their quantity
         if item_id in grouped_items:
             grouped_items[item_id]['quantity'] += 1
         else:
@@ -697,19 +729,38 @@ def complete_checkout():
     city = request.form.get('city')
     phone = request.form.get('phone')
 
-    # Simulate item and order details
-    checkout_items = session.get('checkout_items', [])
-    items_data = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
+    # Define hardcoded items
+    hardcoded_items = {
+        "H1": {'id': "H1", 'title': 'Ancient Vase', 'price': 25},
+        "H2": {'id': "H2", 'title': 'Renaissance Painting', 'price': 30},
+        "H3": {'id': "H3", 'title': 'Ancient Sculpture', 'price': 20},
+        "H4": {'id': "H4", 'title': 'Impressionist Artwork', 'price': 15},
     }
+
+    # Fetch checkout items from the session
+    checkout_items = session.get('checkout_items', [])
 
     # Calculate total cost
     total_cost = 0
     for item_id in checkout_items:
-        total_cost += items_data[int(item_id)]['price']
+        if item_id.startswith("H"):
+            # Use hardcoded items for IDs starting with "H"
+            item = hardcoded_items.get(item_id)
+        else:
+            # Query database for other item IDs
+            event = Event.query.get(int(item_id))
+            if event:
+                item = {
+                    'id': event.id,
+                    'title': event.title,
+                    'price': event.price,
+                }
+            else:
+                print(f"Warning: Event with ID {item_id} not found.")
+                continue
+
+        # Add item price to total cost
+        total_cost += item['price']
 
     # Prepare ticket details for the confirmation page
     ticket = {
@@ -718,6 +769,16 @@ def complete_checkout():
         'total_cost': total_cost,
         'quantity': len(checkout_items),
     }
+
+    # Use the first item as an example for the confirmation page
+    first_item = (
+        hardcoded_items.get(checkout_items[0]) 
+        if checkout_items[0].startswith("H") 
+        else Event.query.get(int(checkout_items[0]))
+    )
+
+    # Clear the checkout items from the session
+    session['checkout_items'] = []
 
     # Redirect to the order confirmation page
     return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
