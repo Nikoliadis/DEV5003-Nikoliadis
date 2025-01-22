@@ -587,9 +587,8 @@ def buy_ticket():
 @app.route('/add_to_checkout', methods=['POST'])
 def add_to_checkout():
     item_id = request.json.get('item_id')
-    # Preserve the original structure while adding quantity management
     items = session.get('checkout_items', [])
-    items.append(item_id)  # Append the item ID as in the original logic
+    items.append(item_id)  # Append the item ID
     session['checkout_items'] = items
     return jsonify(success=True, message="Item added to checkout!", redirect_url=url_for('home', item_added='true'))
 

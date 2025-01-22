@@ -15,7 +15,7 @@
                     <p><strong>Price:</strong> €{{ event.price }}</p>
                     {% endif %}
                     {% if event.id %}
-                    <a href="{{ url_for('item_detail', item_id=event.id) }}" class="btn btn-primary">Learn More</a>
+                    <button class="btn btn-primary add-to-checkout-btn" data-item-id="{{ event.id }}">Add to Checkout</button>
                     {% else %}
                     <p class="text-muted text-center mt-3">Details unavailable</p>
                     {% endif %}
@@ -25,4 +25,53 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Popup Message -->
+<div id="popup-message" style="position: fixed; bottom: 20px; right: 20px; background-color: #28a745; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; display: none; opacity: 1; transition: opacity 1s;">
+    Item added to checkout!
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Attach click event to all Add to Checkout buttons
+        document.querySelectorAll('.add-to-checkout-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const itemId = this.getAttribute('data-item-id');
+
+                // Send request to add item to checkout
+                fetch('/add_to_checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show popup message
+                        const popup = document.getElementById('popup-message');
+                        popup.style.display = 'block';
+                        popup.style.opacity = '1'; // Ensure visibility
+
+                        // Fade out after 3 seconds
+                        setTimeout(() => {
+                            popup.style.opacity = '0'; // Fade out
+                            setTimeout(() => {
+                                popup.style.display = 'none'; // Hide after fade-out
+                            }, 1000); // Match transition duration
+                        }, 3000);
+                    } else {
+                        alert('Failed to add item to checkout.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding to checkout.');
+                });
+            });
+        });
+    });
+</script>
+
 {% endblock %}
