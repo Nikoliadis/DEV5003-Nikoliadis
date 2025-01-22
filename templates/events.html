@@ -12,7 +12,7 @@
                     <h5 class="card-title">{{ event.title }}</h5>
                     <p class="card-text">{{ event.description }}</p>
                     {% if event.price %}
-                    <p><strong>Price:</strong> ${{ event.price }}</p>
+                    <p><strong>Price:</strong> €{{ event.price }}</p>
                     {% endif %}
                     {% if event.id %}
                     <a href="{{ url_for('item_detail', item_id=event.id) }}" class="btn btn-primary">Learn More</a>

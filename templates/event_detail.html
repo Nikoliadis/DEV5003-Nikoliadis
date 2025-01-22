@@ -8,7 +8,7 @@
     <p class="mt-4"><strong>Description:</strong> {{ event.description }}</p>
     <p><strong>Date:</strong> {{ event.date.strftime('%B %d, %Y') }}</p>
     {% if event.price %}
-    <p><strong>Price:</strong> ${{ event.price }}</p>
+    <p><strong>Price:</strong> €{{ event.price }}</p>
     {% endif %}
 </div>
 {% endblock %}
