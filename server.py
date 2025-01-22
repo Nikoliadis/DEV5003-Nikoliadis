@@ -229,6 +229,53 @@ def add_event():
     events = Event.query.all()
     return render_template('add_event.html', events=events)
 
+def add_hardcoded_items():
+    """Ensure hardcoded items exist in the database."""
+    hardcoded_items = [
+        {
+            'title': 'Ancient Vase',
+            'description': 'A rare ancient vase from the 4th century.',
+            'price': 25,
+            'image_path': 'static/uploads/ancient_vase.jpg',
+            'date': datetime.now().date()
+        },
+        {
+            'title': 'Renaissance Painting',
+            'description': 'A beautiful painting from the Renaissance period.',
+            'price': 30,
+            'image_path': 'static/uploads/renaissance_painting.jpg',
+            'date': datetime.now().date()
+        },
+        {
+            'title': 'Ancient Sculpture',
+            'description': 'A rare sculpture from Ancient Rome.',
+            'price': 20,
+            'image_path': 'static/uploads/ancient_sculpture.jpg',
+            'date': datetime.now().date()
+        },
+        {
+            'title': 'Impressionist Artwork',
+            'description': 'A beautiful painting from the Impressionist era.',
+            'price': 15,
+            'image_path': 'static/uploads/impressionist_artwork.jpg',
+            'date': datetime.now().date()
+        }
+    ]
+
+    for item in hardcoded_items:
+        existing_item = Event.query.filter_by(title=item['title']).first()
+        if not existing_item:
+            new_item = Event(
+                title=item['title'],
+                description=item['description'],
+                price=item['price'],
+                image_path=item['image_path'],
+                date=item['date']
+            )
+            db.session.add(new_item)
+    db.session.commit()
+    print("Hardcoded items added to the database.")
+
 
 @app.route('/event/<int:event_id>')
 def event_detail(event_id):
@@ -742,7 +789,8 @@ def complete_checkout():
 
     # Calculate total cost
     total_cost = 0
-    for item_id in checkout_items:
+    first_item = None
+    for idx, item_id in enumerate(checkout_items):
         if item_id.startswith("H"):
             # Use hardcoded items for IDs starting with "H"
             item = hardcoded_items.get(item_id)
@@ -754,6 +802,7 @@ def complete_checkout():
                     'id': event.id,
                     'title': event.title,
                     'price': event.price,
+                    'image': url_for('static', filename=event.image_path.split('static/')[1]),
                 }
             else:
                 print(f"Warning: Event with ID {item_id} not found.")
@@ -761,6 +810,10 @@ def complete_checkout():
 
         # Add item price to total cost
         total_cost += item['price']
+
+        # Save the first item for the confirmation page
+        if idx == 0:
+            first_item = item
 
     # Prepare ticket details for the confirmation page
     ticket = {
@@ -770,18 +823,17 @@ def complete_checkout():
         'quantity': len(checkout_items),
     }
 
-    # Use the first item as an example for the confirmation page
-    first_item = (
-        hardcoded_items.get(checkout_items[0]) 
-        if checkout_items[0].startswith("H") 
-        else Event.query.get(int(checkout_items[0]))
-    )
-
     # Clear the checkout items from the session
     session['checkout_items'] = []
 
-    # Redirect to the order confirmation page
-    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+    # Render the order confirmation page
+    return render_template('order_confirmation.html', ticket=ticket, item=first_item)
+
+
+# At the very end of server.py
 
 if __name__ == '__main__':
+    with app.app_context():
+        create_admin_user()
+        add_hardcoded_items()
     app.run(debug=True)
