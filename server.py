@@ -732,8 +732,12 @@ def complete_checkout():
         'quantity': len(checkout_items),
     }
 
+    # Clear the checkout items after purchase
+    session['checkout_items'] = []
+
     # Redirect to the order confirmation page
     return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+
 
 if __name__ == '__main__':
     app.run(debug=True)
