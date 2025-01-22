@@ -593,25 +593,45 @@ def add_to_checkout():
     return jsonify(success=True, message="Item added to checkout!", redirect_url=url_for('home', item_added='true'))
 
 
+
 @app.route('/get_checkout_items', methods=['GET'])
 def get_checkout_items():
+    print("Session Checkout Items:", session.get('checkout_items', []))  # Debugging
+
+    # Static items data
     items_data = {
-        1: {'id': 1, 'title': 'Ancient Vase', 'price': 25, 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        2: {'id': 2, 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        3: {'id': 3, 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        4: {'id': 4, 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'}
+        1: {'id': 1, 'title': 'Ancient Vase', 'price': 25, 'image': 'https://...'},
+        2: {'id': 2, 'title': 'Renaissance Painting', 'price': 30, 'image': 'https://...'},
+        3: {'id': 3, 'title': 'Ancient Sculpture', 'price': 20, 'image': 'https://...'},
+        4: {'id': 4, 'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://...'}
     }
+
+    # Add admin-defined events to items_data
+    db_events = Event.query.all()
+    for event in db_events:
+        items_data[event.id] = {
+            'id': event.id,
+            'title': event.title,
+            'price': event.price or 0,  # Default to 0 if no price
+            'image': event.image_path
+        }
+
     checkout_items = session.get('checkout_items', [])
     grouped_items = {}
 
     for item_id in checkout_items:
-        item_id = int(item_id)  # Ensure integer IDs
-        if item_id in grouped_items:
-            grouped_items[item_id]['quantity'] += 1
+        item_id = int(item_id)  # Ensure it's an integer
+        if item_id in items_data:
+            if item_id in grouped_items:
+                grouped_items[item_id]['quantity'] += 1
+            else:
+                grouped_items[item_id] = {**items_data[item_id], 'quantity': 1}
         else:
-            grouped_items[item_id] = {**items_data[item_id], 'quantity': 1}
+            print(f"Warning: Item ID {item_id} not found in items_data")  # Debugging
 
     return jsonify(items=list(grouped_items.values()))
+
+
 
 
 @app.route('/update_cart_quantity', methods=['POST'])
@@ -701,41 +721,75 @@ def contact():
 
 @app.route('/complete_checkout', methods=['POST'])
 def complete_checkout():
-    # Retrieve form data
-    payment_method = request.form.get('payment_method')
-    address_line_1 = request.form.get('address_line_1')
-    address_line_2 = request.form.get('address_line_2')
-    postal_code = request.form.get('postal_code')
-    city = request.form.get('city')
-    phone = request.form.get('phone')
+    try:
+        # Retrieve form data
+        payment_method = request.form.get('payment_method')
+        address_line_1 = request.form.get('address_line_1', '')
+        address_line_2 = request.form.get('address_line_2', '')
+        postal_code = request.form.get('postal_code', '')
+        city = request.form.get('city', '')
+        phone = request.form.get('phone', '')
 
-    # Simulate item and order details
-    checkout_items = session.get('checkout_items', [])
-    items_data = {
-        1: {'title': 'Ancient Vase', 'price': 25},
-        2: {'title': 'Renaissance Painting', 'price': 30},
-        3: {'title': 'Ancient Sculpture', 'price': 20},
-        4: {'title': 'Impressionist Artwork', 'price': 15},
-    }
+        # Combine hardcoded items with database events
+        items_data = {
+            1: {'title': 'Ancient Vase', 'price': 25},
+            2: {'title': 'Renaissance Painting', 'price': 30},
+            3: {'title': 'Ancient Sculpture', 'price': 20},
+            4: {'title': 'Impressionist Artwork', 'price': 15},
+        }
 
-    # Calculate total cost
-    total_cost = 0
-    for item_id in checkout_items:
-        total_cost += items_data[int(item_id)]['price']
+        # Add events from the database
+        events_from_db = Event.query.all()
+        for event in events_from_db:
+            items_data[event.id] = {
+                'title': event.title,
+                'price': event.price,
+            }
 
-    # Prepare ticket details for the confirmation page
-    ticket = {
-        'payment_method': payment_method,
-        'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}",
-        'total_cost': total_cost,
-        'quantity': len(checkout_items),
-    }
+        # Retrieve checkout items from the session
+        checkout_items = session.get('checkout_items', [])
+        if not checkout_items:
+            flash("Your cart is empty.", "danger")
+            return redirect(url_for('checkout'))
 
-    # Clear the checkout items after purchase
-    session['checkout_items'] = []
+        # Initialize total cost
+        total_cost = 0
+        valid_items = []
 
-    # Redirect to the order confirmation page
-    return render_template('order_confirmation.html', ticket=ticket, item=items_data[int(checkout_items[0])])
+        # Process each item in the checkout
+        for item_id in checkout_items:
+            item_id = int(item_id)
+            if item_id in items_data:
+                item = items_data[item_id]
+                total_cost += item['price']
+                valid_items.append(item)
+            else:
+                app.logger.warning(f"Item ID {item_id} not found in items_data.")
+
+        if not valid_items:
+            flash("No valid items in your cart.", "danger")
+            return redirect(url_for('checkout'))
+
+        # Prepare ticket details
+        ticket = {
+            'payment_method': payment_method,
+            'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}".strip(', '),
+            'total_cost': total_cost,
+            'quantity': len(valid_items),
+        }
+
+        # Clear checkout items after purchase
+        session['checkout_items'] = []
+
+        # Render the Order Confirmation page
+        return render_template('order_confirmation.html', ticket=ticket, items=valid_items)
+
+    except Exception as e:
+        app.logger.error(f"Error completing checkout: {e}")
+        flash("An error occurred while processing your order. Please try again.", "danger")
+        return redirect(url_for('checkout'))
+
+
 
 
 if __name__ == '__main__':
