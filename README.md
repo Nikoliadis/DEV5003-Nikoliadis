@@ -7,11 +7,8 @@ We Will Need To Deactivate Protection
     Run: powershell
     Type: Get-ExecutionPolicy
     And Then Type: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-3. pip install flask
-4. pip install flask_sqlalchemy
-5. pip install flask_login
-6. pip install flask_migrate
-7. Finally We Run "python server.py" to run the site!
+3. pip install flask flask_sqlalchemy flask_login flask_migrate
+4. Finally We Run "python server.py" to run the site!
 
 
 Admin User Credentials
