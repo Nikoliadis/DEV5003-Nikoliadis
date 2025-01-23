@@ -239,11 +239,16 @@ def event_detail(event_id):
 @login_required
 @admin_required
 def delete_event(event_id):
+    if event_id in [1, 2, 3, 4]:
+        flash("You cannot delete the default events.", "danger")
+        return redirect(url_for('add_event'))
+    
     event = Event.query.get_or_404(event_id)
     db.session.delete(event)
     db.session.commit()
     flash("Event deleted successfully!", "success")
     return redirect(url_for('add_event'))
+
 
 @app.route('/admin/feedback')
 @login_required
