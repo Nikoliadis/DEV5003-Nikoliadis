@@ -17,10 +17,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for ticket in tickets %}
+            {% for ticket, user in tickets %}
             <tr>
                 <td>{{ ticket.id }}</td>
-                <td>{{ ticket.user_id }}</td>
+                <td>{{ user.username }}</td>
                 <td>{{ ticket.item_id }}</td>
                 <td>{{ ticket.quantity }}</td>
                 <td>${{ ticket.total_cost }}</td>
@@ -45,6 +45,7 @@
                 </td>
             </tr>
             {% endfor %}
+        </tbody>        
         </tbody>
     </table>
     {% if not tickets %}

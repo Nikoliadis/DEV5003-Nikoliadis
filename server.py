@@ -325,8 +325,8 @@ def archive_message(message_id):
 @login_required
 @admin_required
 def manage_purchases():
-    # Fetch all tickets
-    tickets = Ticket.query.all()
+    # Fetch all tickets along with user details
+    tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).all()
 
     if request.method == 'POST':
         ticket_id = request.form.get('ticket_id')
@@ -343,7 +343,6 @@ def manage_purchases():
         return redirect(url_for('manage_purchases'))
 
     return render_template('manage_purchases.html', tickets=tickets)
-
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -859,9 +858,6 @@ def complete_checkout():
         app.logger.error(f"Error completing checkout: {e}")
         flash("An error occurred while processing your order. Please try again.", "danger")
         return redirect(url_for('checkout'))
-
-
-
 
 
 if __name__ == '__main__':
