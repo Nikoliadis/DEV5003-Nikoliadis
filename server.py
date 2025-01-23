@@ -404,54 +404,53 @@ def news():
 
 @app.route('/events')
 def events():
-    # Fetch events from the database
-    events_from_db = Event.query.all()
-    
-    # Hardcoded events (update 'item_id' to 'id' for consistency)
+    # Hardcoded events
     hardcoded_events = [
         {
-            'id': 1,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Vase',
             'image_path': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image',
             'description': 'A rare ancient vase from the 4th century. It was discovered in a tomb in Italy and is a prime example of ancient Greek pottery.',
             'price': 25,
         },
         {
-            'id': 2,  # Changed from 'item_id' to 'id'
             'title': 'Renaissance Painting',
             'image_path': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691',
             'description': 'A beautiful painting from the Renaissance period, painted by Leonardo da Vinci. The Mona Lisa remains one of the most famous artworks in the world.',
             'price': 30,
         },
         {
-            'id': 3,  # Changed from 'item_id' to 'id'
             'title': 'Ancient Sculpture',
             'image_path': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e93e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format',
             'description': 'A rare sculpture from Ancient Rome, dating back to the 2nd century. It depicts a famous Roman general and is considered one of the finest works of its kind.',
             'price': 20,
         },
         {
-            'id': 4,  # Changed from 'item_id' to 'id'
             'title': 'Impressionist Artwork',
             'image_path': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s',
             'description': 'A beautiful painting from the Impressionist era. The work focuses on the beauty of light and nature, with vibrant colors and bold brushstrokes.',
             'price': 15,
         },
     ]
-    
 
-    # Combine both hardcoded events and database events
-    events = hardcoded_events + [
-        {
-            'id': event.id,  # Use 'id' from the database
-            'title': event.title,
-            'image_path': event.image_path,
-            'description': event.description,
-            'price': getattr(event, 'price', None),  # Include price if it exists
-        }
-        for event in events_from_db
-    ]
-    
+    # Insert hardcoded events into the database if they don't exist
+    for event in hardcoded_events:
+        existing_event = Event.query.filter_by(title=event['title']).first()
+        if not existing_event:
+            new_event = Event(
+                title=event['title'],
+                description=event['description'],
+                date=datetime.now(),  # Use the current date for simplicity
+                price=event['price'],
+                image_path=event['image_path'],
+            )
+            db.session.add(new_event)
+
+    # Commit the hardcoded events to the database
+    db.session.commit()
+
+    # Fetch all events from the database (hardcoded + admin-added)
+    events = Event.query.all()
+
     return render_template('events.html', events=events)
 
 
