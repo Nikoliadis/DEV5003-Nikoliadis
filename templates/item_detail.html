@@ -80,6 +80,7 @@
     <h1>{{ item.title }}</h1>
     <img src="{{ item.image_path }}" alt="{{ item.title }}">
     <p><strong>Description:</strong> {{ item.description }}</p>
+    <p><strong>Price:</strong> ${{ item.price }}</p> <!-- Price added here -->
     <form>
         <button type="button" class="add-to-checkout-btn" data-item-id="{{ item_id }}">Add to Checkout</button>
     </form>
