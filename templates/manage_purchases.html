@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center text-info fw-bold mb-5">Manage Purchases</h1>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Item ID</th>
+                <th>Quantity</th>
+                <th>Total Cost</th>
+                <th>Payment Method</th>
+                <th>Fulfilled</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket.id }}</td>
+                <td>{{ ticket.user_id }}</td>
+                <td>{{ ticket.item_id }}</td>
+                <td>{{ ticket.quantity }}</td>
+                <td>${{ ticket.total_cost }}</td>
+                <td>{{ ticket.payment_method }}</td>
+                <td>
+                    {% if ticket.fulfilled %}
+                    <span class="badge bg-success">Fulfilled</span>
+                    {% else %}
+                    <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not ticket.fulfilled %}
+                    <form method="POST" action="{{ url_for('manage_purchases') }}">
+                        <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                        <input type="hidden" name="action" value="mark_fulfilled">
+                        <button type="submit" class="btn btn-sm btn-success">Mark as Fulfilled</button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled>Already Fulfilled</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if not tickets %}
+    <p class="text-center">No purchases available.</p>
+    {% endif %}
+</div>
+{% endblock %}

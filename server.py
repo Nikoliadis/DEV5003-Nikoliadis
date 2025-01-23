@@ -74,8 +74,10 @@ class Ticket(db.Model):
     item_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)
-    address = db.Column(db.String(255), nullable=True)  # Only for credit card payments
-    total_cost = db.Column(db.Float, nullable=False)  # Add total cost
+    address = db.Column(db.String(255), nullable=True)
+    total_cost = db.Column(db.Float, nullable=False)
+    fulfilled = db.Column(db.Boolean, default=False)  # Add this line
+
 
 
 class News(db.Model):
@@ -318,6 +320,30 @@ def archive_message(message_id):
     db.session.commit()
     flash("Message archived successfully.", "success")
     return redirect(url_for('view_messages'))
+
+@app.route('/admin/purchases', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_purchases():
+    # Fetch all tickets
+    tickets = Ticket.query.all()
+
+    if request.method == 'POST':
+        ticket_id = request.form.get('ticket_id')
+        action = request.form.get('action')
+
+        # Mark ticket as fulfilled
+        if action == 'mark_fulfilled':
+            ticket = Ticket.query.get(ticket_id)
+            if ticket:
+                ticket.fulfilled = True
+                db.session.commit()
+                flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
+
+        return redirect(url_for('manage_purchases'))
+
+    return render_template('manage_purchases.html', tickets=tickets)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
