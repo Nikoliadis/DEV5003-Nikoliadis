@@ -778,12 +778,6 @@ def complete_checkout():
         address_line_2 = request.form.get('address_line_2', '').strip()
         postal_code = request.form.get('postal_code', '').strip()
         city = request.form.get('city', '').strip()
-        phone = request.form.get('phone', '').strip()
-
-        # Validate that payment_method is provided
-        if not payment_method:
-            flash("Payment method is required.", "danger")
-            return redirect(url_for('checkout'))
 
         # Load all items (hardcoded + database events)
         items_data = {
@@ -822,7 +816,7 @@ def complete_checkout():
                 item = items_data[item_id]
                 total_cost += item['price']
                 valid_items.append({
-                    'title': item['title'],
+                    'item_id': item_id,
                     'price': item['price'],
                 })
             else:
@@ -833,24 +827,39 @@ def complete_checkout():
             flash("No valid items in your cart.", "danger")
             return redirect(url_for('checkout'))
 
+        # Save purchases (tickets) to the database
+        for item in valid_items:
+            new_ticket = Ticket(
+                user_id=current_user.id,
+                item_id=item['item_id'],
+                quantity=1,  # Assuming each item is added as 1 quantity in this example
+                payment_method=payment_method,
+                address=f"{address_line_1}, {address_line_2}, {postal_code}, {city}".strip(', '),
+                total_cost=item['price'],
+            )
+            db.session.add(new_ticket)
+
+        db.session.commit()
+
+        # Clear checkout session after successful processing
+        session['checkout_items'] = []
+
         # Prepare ticket details for display
-        ticket = {
+        ticket_summary = {
             'payment_method': payment_method,
             'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}".strip(', '),
             'total_cost': total_cost,
             'quantity': len(valid_items),
         }
 
-        # Clear checkout session after successful processing
-        session['checkout_items'] = []
-
         # Render the Order Confirmation page
-        return render_template('order_confirmation.html', ticket=ticket, items=valid_items)
+        return render_template('order_confirmation.html', ticket=ticket_summary, items=valid_items)
 
     except Exception as e:
         app.logger.error(f"Error completing checkout: {e}")
         flash("An error occurred while processing your order. Please try again.", "danger")
         return redirect(url_for('checkout'))
+
 
 
 
