@@ -333,27 +333,26 @@ def manage_purchases():
         Ticket.fulfilled == (True if show_archived else False)
     ).all()
 
-    # Combine hardcoded items and events from the database
-    items_data = {
-        1: {'title': 'Ancient Vase', 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
-        2: {'title': 'Renaissance Painting', 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
-        3: {'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
-        4: {'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
-    }
-
-    # Add events from the database
-    events_from_db = Event.query.all()
-    for event in events_from_db:
-        items_data[event.id] = {
-            'title': event.title,
-            'image': event.image_path if event.image_path else 'https://via.placeholder.com/50',
-        }
-
-    # Add user and item details to the tickets
+    # Add user and event details to the tickets
     tickets_with_details = []
     for ticket in tickets:
         user = User.query.get(ticket.user_id)
-        item = items_data.get(ticket.item_id, {'title': 'Unknown Item', 'image': 'https://via.placeholder.com/50'})
+
+        # Fetch the event details for the item
+        event = Event.query.get(ticket.item_id)
+
+        # If event exists, use its image and title; otherwise, use placeholders
+        if event:
+            item = {
+                'title': event.title,
+                'image': event.image_path if event.image_path else 'https://via.placeholder.com/50',
+            }
+        else:
+            item = {
+                'title': 'Unknown Item',
+                'image': 'https://via.placeholder.com/50',
+            }
+
         tickets_with_details.append((ticket, user, item))
 
     if request.method == 'POST':
@@ -378,7 +377,6 @@ def manage_purchases():
         return redirect(url_for('manage_purchases', archived=show_archived))
 
     return render_template('manage_purchases.html', tickets=tickets_with_details, show_archived=show_archived)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
