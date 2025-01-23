@@ -91,20 +91,41 @@
 <style>
     /* General Page Styling */
     body {
-        background-color: #f8f9fa;
+        background-color: #f4f7f9;
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
     }
 
     h2, h4 {
         font-weight: 700;
-        color: #343a40;
+        color: #2c3e50;
+        text-align: center;
+    }
+
+    h2 {
+        font-size: 32px;
+        margin-bottom: 20px;
+    }
+
+    h4 {
+        font-size: 24px;
+        margin-bottom: 15px;
     }
 
     /* Card Styling */
     .checkout-card {
-        background-color: white;
+        background-color: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .checkout-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
     }
 
     .checkout-card img {
@@ -112,62 +133,136 @@
         width: auto;
         object-fit: cover;
         border-radius: 8px;
+        margin-right: 15px;
     }
 
     .checkout-card h5 {
-        font-size: 18px;
-        color: #495057;
+        font-size: 20px;
+        color: #34495e;
         font-weight: 600;
     }
 
     .checkout-card p {
         font-size: 16px;
         margin-bottom: 0;
-        color: #6c757d;
+        color: #7f8c8d;
     }
 
     /* Quantity Controls */
     .update-quantity {
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
         display: inline-flex;
         justify-content: center;
         align-items: center;
+        font-weight: bold;
+        color: #2c3e50;
+        background-color: #e9ecef;
+        border: none;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .update-quantity:hover {
+        background-color: #007bff;
+        color: #ffffff;
+        transform: scale(1.1);
     }
 
     .quantity-display {
         font-weight: 700;
         font-size: 16px;
+        margin: 0 10px;
     }
 
-    /* Payment Form Styling */
+    /* Form Styling */
+    .form-check-label {
+        font-size: 16px;
+        color: #495057;
+        font-weight: 500;
+    }
+
     .form-check-input:checked {
         background-color: #007bff;
         border-color: #007bff;
     }
 
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        font-size: 16px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    /* Buttons */
     .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
+        background: linear-gradient(90deg, #28a745, #218838);
+        border: none;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
         transition: all 0.3s ease;
     }
 
     .btn-success:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
+        background: linear-gradient(90deg, #218838, #1e7e34);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .btn-outline-primary {
         border-color: #007bff;
         color: #007bff;
+        font-size: 18px;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
     }
 
     .btn-outline-primary:hover {
         background-color: #007bff;
         color: #ffffff;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .checkout-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .checkout-card img {
+            margin: 0 auto 15px;
+        }
+
+        .quantity-display {
+            font-size: 14px;
+        }
+
+        .btn-success, .btn-outline-primary {
+            font-size: 16px;
+            padding: 8px 16px;
+        }
     }
 </style>
+
 
 <!-- JavaScript Section -->
 <script>

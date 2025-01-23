@@ -2,22 +2,24 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center mb-5" style="color: #333; font-size: 36px; font-weight: bold;">Upcoming Events</h1>
+    <h1 class="text-center mb-5" style="color: #2c3e50; font-size: 40px; font-weight: 700; letter-spacing: 1px;"> Upcoming Events </h1>
     <div class="row">
         {% for event in events %}
         <div class="col-md-4 mb-4">
-            <div class="card shadow-sm" style="border-radius: 8px;">
+            <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                 <img src="{{ event.image_path }}" alt="{{ event.title }}" class="card-img-top" style="height: 250px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title">{{ event.title }}</h5>
-                    <p class="card-text">{{ event.description }}</p>
+                <div class="card-body" style="background-color: #f8f9fa; padding: 20px;">
+                    <h5 class="card-title" style="color: #34495e; font-size: 20px; font-weight: bold; margin-bottom: 10px;">{{ event.title }}</h5>
+                    <p class="card-text" style="color: #7f8c8d; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">{{ event.description }}</p>
                     {% if event.price %}
-                    <p><strong>Price:</strong> €{{ event.price }}</p>
+                    <p style="color: #27ae60; font-size: 18px; font-weight: bold;"><strong>Price:</strong> €{{ event.price }}</p>
                     {% endif %}
                     {% if event.id %}
-                    <button class="btn btn-primary add-to-checkout-btn" data-item-id="{{ event.id }}">Add to Checkout</button>
+                    <button class="btn btn-primary add-to-checkout-btn" data-item-id="{{ event.id }}" style="background: linear-gradient(90deg, #6a11cb, #2575fc); border: none; padding: 10px 20px; font-size: 16px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); transition: all 0.3s;">
+                        Add to Checkout
+                    </button>
                     {% else %}
-                    <p class="text-muted text-center mt-3">Details unavailable</p>
+                    <p class="text-muted text-center mt-3" style="font-size: 14px; font-style: italic;">Details unavailable</p>
                     {% endif %}
                 </div>
             </div>
@@ -27,8 +29,8 @@
 </div>
 
 <!-- Popup Message -->
-<div id="popup-message" style="position: fixed; bottom: 20px; right: 20px; background-color: #28a745; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; display: none; opacity: 1; transition: opacity 1s;">
-    Item added to checkout!
+<div id="popup-message" style="position: fixed; bottom: 20px; right: 20px; background-color: #28a745; color: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); z-index: 1000; display: none; opacity: 1; font-size: 16px; font-weight: 600; transition: opacity 1s;">
+    ✅ Item added to checkout!
 </div>
 
 <script>
@@ -74,4 +76,21 @@
     });
 </script>
 
+<style>
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #2575fc, #6a11cb);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+</style>
 {% endblock %}
