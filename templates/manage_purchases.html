@@ -2,6 +2,18 @@
 
 {% block content %}
 <div class="container mt-5">
+    <!-- Header Section with Toggle Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-{{ 'secondary' if show_archived else 'primary' }}">
+            {{ 'Archived Orders' if show_archived else 'Manage Purchases' }}
+        </h2>
+        <!-- Toggle Archived/Active Orders -->
+        <a href="{{ url_for('manage_purchases', archived=not show_archived) }}" 
+           class="btn btn-outline-{{ 'primary' if show_archived else 'secondary' }} px-4">
+            {{ 'View Active Orders' if show_archived else 'View Archived Orders' }}
+        </a>
+    </div>
+
     <h1 class="text-center text-info fw-bold mb-5">Manage Purchases</h1>
     <table class="table table-bordered table-hover">
         <thead>
@@ -33,20 +45,32 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% if not ticket.fulfilled %}
-                    <form method="POST" action="{{ url_for('manage_purchases') }}">
-                        <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                        <input type="hidden" name="action" value="mark_fulfilled">
-                        <button type="submit" class="btn btn-sm btn-success">Mark as Fulfilled</button>
-                    </form>
+                    {% if not show_archived %}
+                        <!-- Fulfill and Archive for Active Orders -->
+                        {% if not ticket.fulfilled %}
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <input type="hidden" name="action" value="mark_fulfilled">
+                            <button type="submit" class="btn btn-sm btn-success">Mark as Fulfilled</button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <input type="hidden" name="action" value="archive">
+                            <button type="submit" class="btn btn-sm btn-secondary">Archive</button>
+                        </form>
                     {% else %}
-                    <button class="btn btn-sm btn-secondary" disabled>Already Fulfilled</button>
+                        <!-- Unarchive for Archived Orders -->
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <input type="hidden" name="action" value="unarchive">
+                            <button type="submit" class="btn btn-sm btn-warning">Unarchive</button>
+                        </form>
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>        
-        </tbody>
     </table>
     {% if not tickets %}
     <p class="text-center">No purchases available.</p>

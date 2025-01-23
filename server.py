@@ -76,7 +76,8 @@ class Ticket(db.Model):
     payment_method = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(255), nullable=True)
     total_cost = db.Column(db.Float, nullable=False)
-    fulfilled = db.Column(db.Boolean, default=False)  # Add this line
+    fulfilled = db.Column(db.Boolean, default=False)
+    archived = db.Column(db.Boolean, default=False)
 
 
 
@@ -325,25 +326,43 @@ def archive_message(message_id):
 @login_required
 @admin_required
 def manage_purchases():
-    # Fetch all tickets along with user details
-    tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).all()
+    # Check if viewing archived orders
+    show_archived = request.args.get('archived', 'false').lower() == 'true'
+
+    # Fetch tickets based on archived status
+    if show_archived:
+        tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).filter(Ticket.archived == True).all()
+    else:
+        tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).filter(Ticket.archived == False).all()
 
     if request.method == 'POST':
         ticket_id = request.form.get('ticket_id')
         action = request.form.get('action')
 
-        # Mark ticket as fulfilled
+        ticket = Ticket.query.get(ticket_id)
+        if not ticket:
+            flash("Ticket not found.", "danger")
+            return redirect(url_for('manage_purchases'))
+
+        # Mark as fulfilled
         if action == 'mark_fulfilled':
-            ticket = Ticket.query.get(ticket_id)
-            if ticket:
-                ticket.fulfilled = True
-                db.session.commit()
-                flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
+            ticket.fulfilled = True
+            db.session.commit()
+            flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
 
-        return redirect(url_for('manage_purchases'))
+        # Archive or unarchive
+        elif action == 'archive':
+            ticket.archived = True
+            db.session.commit()
+            flash(f"Ticket {ticket.id} archived.", "success")
+        elif action == 'unarchive':
+            ticket.archived = False
+            db.session.commit()
+            flash(f"Ticket {ticket.id} restored.", "success")
 
-    return render_template('manage_purchases.html', tickets=tickets)
+        return redirect(url_for('manage_purchases', archived=show_archived))
 
+    return render_template('manage_purchases.html', tickets=tickets, show_archived=show_archived)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
