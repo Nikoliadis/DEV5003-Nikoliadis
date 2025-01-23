@@ -326,43 +326,59 @@ def archive_message(message_id):
 @login_required
 @admin_required
 def manage_purchases():
-    # Check if viewing archived orders
     show_archived = request.args.get('archived', 'false').lower() == 'true'
 
     # Fetch tickets based on archived status
-    if show_archived:
-        tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).filter(Ticket.archived == True).all()
-    else:
-        tickets = db.session.query(Ticket, User).join(User, Ticket.user_id == User.id).filter(Ticket.archived == False).all()
+    tickets = Ticket.query.filter(
+        Ticket.fulfilled == (True if show_archived else False)
+    ).all()
+
+    # Combine hardcoded items and events from the database
+    items_data = {
+        1: {'title': 'Ancient Vase', 'image': 'https://collectionapi.metmuseum.org/api/collection/v1/iiif/248902/541985/main-image'},
+        2: {'title': 'Renaissance Painting', 'image': 'https://cdn.shopify.com/s/files/1/1414/2472/files/1-_604px-Mona_Lisa__by_Leonardo_da_Vinci__from_C2RMF_retouched.jpg?v=1558424691'},
+        3: {'title': 'Ancient Sculpture', 'image': 'https://cdn.sanity.io/images/cctd4ker/production/1aa8046e23e92b205aae6be6480549b9c7ca1-1440x960.jpg?w=3840&q=75&fit=clip&auto=format'},
+        4: {'title': 'Impressionist Artwork', 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
+    }
+
+    # Add events from the database
+    events_from_db = Event.query.all()
+    for event in events_from_db:
+        items_data[event.id] = {
+            'title': event.title,
+            'image': event.image_path if event.image_path else 'https://via.placeholder.com/50',
+        }
+
+    # Add user and item details to the tickets
+    tickets_with_details = []
+    for ticket in tickets:
+        user = User.query.get(ticket.user_id)
+        item = items_data.get(ticket.item_id, {'title': 'Unknown Item', 'image': 'https://via.placeholder.com/50'})
+        tickets_with_details.append((ticket, user, item))
 
     if request.method == 'POST':
         ticket_id = request.form.get('ticket_id')
         action = request.form.get('action')
 
+        # Handle actions (fulfill, archive, unarchive)
         ticket = Ticket.query.get(ticket_id)
-        if not ticket:
-            flash("Ticket not found.", "danger")
-            return redirect(url_for('manage_purchases'))
-
-        # Mark as fulfilled
         if action == 'mark_fulfilled':
             ticket.fulfilled = True
             db.session.commit()
             flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
-
-        # Archive or unarchive
         elif action == 'archive':
-            ticket.archived = True
+            ticket.fulfilled = True  # Assuming fulfilled tickets are archived
             db.session.commit()
-            flash(f"Ticket {ticket.id} archived.", "success")
+            flash(f"Ticket {ticket.id} archived successfully.", "success")
         elif action == 'unarchive':
-            ticket.archived = False
+            ticket.fulfilled = False
             db.session.commit()
-            flash(f"Ticket {ticket.id} restored.", "success")
+            flash(f"Ticket {ticket.id} unarchived successfully.", "success")
 
         return redirect(url_for('manage_purchases', archived=show_archived))
 
-    return render_template('manage_purchases.html', tickets=tickets, show_archived=show_archived)
+    return render_template('manage_purchases.html', tickets=tickets_with_details, show_archived=show_archived)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

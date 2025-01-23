@@ -20,7 +20,8 @@
             <tr>
                 <th>ID</th>
                 <th>User</th>
-                <th>Item ID</th>
+                <th>Item Name</th>
+                <th>Item Image</th>
                 <th>Quantity</th>
                 <th>Total Cost</th>
                 <th>Payment Method</th>
@@ -29,11 +30,14 @@
             </tr>
         </thead>
         <tbody>
-            {% for ticket, user in tickets %}
+            {% for ticket, user, item in tickets %}
             <tr>
                 <td>{{ ticket.id }}</td>
                 <td>{{ user.username }}</td>
-                <td>{{ ticket.item_id }}</td>
+                <td>{{ item.title }}</td>
+                <td>
+                    <img src="{{ item.image }}" alt="{{ item.title }}" width="50" height="50" class="rounded">
+                </td>
                 <td>{{ ticket.quantity }}</td>
                 <td>${{ ticket.total_cost }}</td>
                 <td>{{ ticket.payment_method }}</td>
