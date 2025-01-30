@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-    <!-- Include Bootstrap CSS for styling -->
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
@@ -57,19 +57,17 @@
 <body>
 
     <div class="container">
-        <!-- Profile Card -->
         <div class="profile-card">
             <div class="profile-header">
                 <h2>Welcome, {{ user.username }}</h2>
                 <p>Email: {{ user.email }}</p>
             </div>
 
-            <!-- Logout Button -->
             <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
         </div>
     </div>
 
-    <!-- Bootstrap JS (optional, if needed) -->
+    <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

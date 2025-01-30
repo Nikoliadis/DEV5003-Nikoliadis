@@ -28,7 +28,7 @@ items = {
     4: {'title': 'Impressionist Artwork', 'price': 15, 'image': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlC9suapfI1YOZYafNsa_N-0DlDAaXpha6YA&s'},
 }
 
-# Models for User and Tickets (To track the purchases)
+# Models for User and Tickets
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -49,7 +49,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
-            abort(403)  # Forbidden
+            abort(403)
         return f(*args, **kwargs)
     return decorated_function
  
@@ -123,7 +123,6 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    # Redirect users to the login page when they're not authenticated
     flash("You need to log in to access this page.", "danger")
     return redirect(url_for("login"))
 
@@ -153,12 +152,10 @@ def add_news():
         content = request.form['content']
         image = request.files['image']
 
-        # Save the uploaded image to the static/uploads directory
         if image:
             image_path = f"static/uploads/{image.filename}"
             image.save(image_path)
 
-        # Add the news to the database
         new_news = News(title=title, content=content, image_path=image_path)
         db.session.add(new_news)
         db.session.commit()
@@ -166,7 +163,6 @@ def add_news():
         flash("News added successfully!", "success")
         return redirect(url_for('add_news'))
 
-    # Fetch all news items from the database to display in the Manage News section
     news_items = News.query.all()
     print(news_items)
     return render_template('add_news.html', news_items=news_items)
@@ -176,16 +172,16 @@ def add_news():
 @login_required
 @admin_required
 def delete_news(news_id):
-    news = News.query.get_or_404(news_id)  # Find the news item by ID or return 404
+    news = News.query.get_or_404(news_id)
     if news.image_path:
         try:
-            os.remove(news.image_path)  # Remove the associated image file
+            os.remove(news.image_path)
         except FileNotFoundError:
-            pass  # Ignore if the file does not exist
-    db.session.delete(news)  # Delete the news item
-    db.session.commit()  # Commit changes to the database
-    flash('News deleted successfully!', 'success')  # Show success message
-    return redirect(url_for('add_news'))  # Redirect back to the Add News page
+            pass
+    db.session.delete(news)
+    db.session.commit()
+    flash('News deleted successfully!', 'success')
+    return redirect(url_for('add_news'))
 
 
 @app.route('/admin/events', methods=['GET', 'POST'])
@@ -196,17 +192,15 @@ def add_event():
         title = request.form['title']
         description = request.form['description']
         date_str = request.form['date']
-        price = request.form.get('price')  # Get price from the form
+        price = request.form.get('price')
         image = request.files['image']
-
-        # Convert date string to datetime.date
+        
         try:
             event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
             flash("Invalid date format. Please use YYYY-MM-DD.", "danger")
             return redirect(url_for('add_event'))
 
-        # Save the image
         upload_folder = 'static/uploads'
         if not os.path.exists(upload_folder):
             os.makedirs(upload_folder)
@@ -214,26 +208,23 @@ def add_event():
             image_path = os.path.join(upload_folder, image.filename)
             image.save(image_path)
 
-            # 🔹 **Ensure forward slashes in the path**
             image_path = image_path.replace("\\", "/")
         else:
             flash("Image upload failed. Please try again.", "danger")
             return redirect(url_for('add_event'))
 
-        # Create the event
         new_event = Event(
             title=title,
             description=description,
             date=event_date,
             price=float(price) if price else None,
-            image_path=image_path,  # 🔹 Now correctly formatted with `/`
+            image_path=image_path,
         )
         db.session.add(new_event)
         db.session.commit()
         flash("Event added successfully!", "success")
         return redirect(url_for('add_event'))
 
-    # Fetch all events to display in the Manage Events section
     events = Event.query.all()
     return render_template('add_event.html', events=events)
 
@@ -333,36 +324,32 @@ def archive_message(message_id):
 def manage_purchases():
     show_archived = request.args.get('archived', 'false').lower() == 'true'
 
-    # Fetch tickets based on archived status
     tickets = Ticket.query.filter(Ticket.fulfilled == (True if show_archived else False)).all()
 
-    # Add user and event details to the tickets
     tickets_with_details = []
     for ticket in tickets:
         user = User.query.get(ticket.user_id)
-        event = Event.query.get(ticket.item_id)  # Match by event_id
+        event = Event.query.get(ticket.item_id) 
 
         if event:
-            # Normalize title to match the image file naming convention
             normalized_title = event.title.lower().replace(" ", "_") + ".jpg"
-            image_path = f"uploads/{normalized_title}"  # Ensure correct path
+            image_path = f"uploads/{normalized_title}"
 
-            # **FORCE IT TO TAKE IMAGE BASED ON TITLE**
             if event.image_path:
-                image_path = event.image_path  # Override if set in DB
+                image_path = event.image_path
             elif os.path.exists(os.path.join(app.root_path, 'static', image_path)):
-                image_path = image_path  # Image exists, keep it
+                image_path = image_path 
             else:
-                image_path = None  # **REMOVE PLACEHOLDER—ENSURE ONLY REAL IMAGES**
+                image_path = None
 
             item = {
                 'title': event.title,
-                'image': image_path  # Save the correct image path
+                'image': image_path
             }
         else:
             item = {
                 'title': 'Unknown Item',
-                'image': None  # No placeholder, only real images
+                'image': None 
             }
 
         tickets_with_details.append((ticket, user, item))
@@ -371,7 +358,6 @@ def manage_purchases():
         ticket_id = request.form.get('ticket_id')
         action = request.form.get('action')
 
-        # Handle actions (fulfill, archive, unarchive)
         ticket = Ticket.query.get(ticket_id)
         if ticket:
             if action == 'mark_fulfilled':
@@ -402,20 +388,18 @@ def login():
             flash("Please enter both username/email and password", "danger")
             return redirect(url_for("login"))
 
-        # Check if the input is an email or username
         user = None
         if '@' in login_input:
             user = User.query.filter_by(email=login_input).first()
         else:
             user = User.query.filter_by(username=login_input).first()
 
-        # Check if user exists and password matches
         if user and user.check_password(password):
             login_user(user)
             if user.is_admin:
                 flash('Welcome, Admin!', 'success')
-                return redirect(url_for('admin_dashboard'))  # Redirect admin to the admin dashboard
-            return redirect(url_for('home'))  # Regular user redirection
+                return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('home'))
         else:
             flash('Invalid email/username or password', 'danger')
 
@@ -428,17 +412,14 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('An account with this email already exists.', 'danger')
             return redirect(url_for('register'))
 
-        # Create new user object
         new_user = User(username=username, email=email)
         new_user.set_password(password)
 
-        # Add the user to the session and commit to the database
         db.session.add(new_user)
         db.session.commit()
         
@@ -475,7 +456,7 @@ def about():
 
 @app.route("/news")
 def news():
-    news_items = News.query.all()  # Fetch all news from the database
+    news_items = News.query.all()
     return render_template('news.html', news_items=news_items)
 
 
@@ -509,25 +490,20 @@ def events():
         },
     ]
 
-    # Insert hardcoded events into the database if they don't exist
     for event in hardcoded_events:
         existing_event = Event.query.filter_by(title=event['title']).first()
         if not existing_event:
             new_event = Event(
                 title=event['title'],
                 description=event['description'],
-                date=datetime.now(),  # Use the current date for simplicity
+                date=datetime.now(),
                 price=event['price'],
                 image_path=event['image_path'],
             )
             db.session.add(new_event)
 
-    # Commit the hardcoded events to the database
     db.session.commit()
-
-    # Fetch all events from the database (hardcoded + admin-added)
     events = Event.query.all()
-
     return render_template('events.html', events=events)
 
 
@@ -576,7 +552,6 @@ def submit_contact_message():
     email = request.form['email']
     message_text = request.form['message']
 
-    # Create a new ContactMessage instance
     new_message = ContactMessage(name=name, email=email, message=message_text)
     db.session.add(new_message)
     db.session.commit()
@@ -616,10 +591,8 @@ def item_detail(item_id):
         },
     }
 
-    # Check if the item exists in hardcoded data
     item = items.get(item_id)
 
-    # If not in hardcoded items, check the database
     if not item:
         event = Event.query.get_or_404(item_id)
         item = {
@@ -629,11 +602,9 @@ def item_detail(item_id):
             'description': event.description,
         }
 
-    # Adjust for rendering consistency
     if 'image' in item:
         item['image_path'] = item.pop('image')
 
-    # Render the item detail page
     return render_template('item_detail.html', item=item, item_id=item_id)
 
 
@@ -668,7 +639,6 @@ def add_to_checkout():
         if not item_id:
             return jsonify(success=False, message="Invalid item ID.")
 
-        # Retrieve existing checkout items
         checkout_items = session.get('checkout_items', [])
         checkout_items.append(item_id)
         session['checkout_items'] = checkout_items
@@ -702,12 +672,11 @@ def get_checkout_items():
                 'image': event.image_path,
             }
 
-        # Retrieve items from session
         checkout_items = session.get('checkout_items', [])
         grouped_items = {}
 
         for item_id in checkout_items:
-            item_id = int(item_id)  # Ensure item_id is an integer
+            item_id = int(item_id)
             if item_id in items_data:
                 if item_id in grouped_items:
                     grouped_items[item_id]['quantity'] += 1
@@ -728,22 +697,19 @@ def get_checkout_items():
 @app.route('/update_cart_quantity', methods=['POST'])
 def update_cart_quantity():
     data = request.json
-    item_id = str(data['item_id'])  # Ensure item_id is treated as a string
+    item_id = str(data['item_id'])
     action = data['action']
     
-    # Retrieve the checkout items from the session
     checkout_items = session.get('checkout_items', [])
     
     if action == 'increase':
-        checkout_items.append(item_id)  # Add the item_id to increase quantity
+        checkout_items.append(item_id)
     elif action == 'decrease':
         if item_id in checkout_items:
-            checkout_items.remove(item_id)  # Safely remove the item if it exists
+            checkout_items.remove(item_id)
     
-    # Update the session with the modified checkout items
     session['checkout_items'] = checkout_items
 
-    # Calculate the new quantity of the item
     new_quantity = checkout_items.count(item_id)
 
     return jsonify(success=True, new_quantity=new_quantity)
@@ -790,13 +756,12 @@ def checkout():
                 'price': event.price or 0,
             }
 
-        # Get cart from session
         checkout_items = session.get('checkout_items', [])
         cart_items = []
         total_price = 0
 
         for item_id in checkout_items:
-            item_id = int(item_id)  # Ensure item_id is an integer
+            item_id = int(item_id)
             if item_id in items_data:
                 item = items_data[item_id]
                 total_price += item['price']
@@ -818,14 +783,12 @@ def contact():
 @login_required
 def complete_checkout():
     try:
-        # Retrieve and validate form data
         payment_method = request.form.get('payment_method', '').strip()
         address_line_1 = request.form.get('address_line_1', '').strip()
         address_line_2 = request.form.get('address_line_2', '').strip()
         postal_code = request.form.get('postal_code', '').strip()
         city = request.form.get('city', '').strip()
 
-        # Retrieve checkout items from session
         checkout_items = session.get('checkout_items', [])
         if not checkout_items or not isinstance(checkout_items, list):
             flash("Your cart is empty.", "danger")
@@ -834,25 +797,22 @@ def complete_checkout():
         total_cost = 0
         valid_items = []
 
-        # Fetch items from database instead of hardcoding
         for item_id_str in checkout_items:
             try:
                 item_id = int(item_id_str)
-                event = Event.query.get(item_id)  # Fetch event directly from database
+                event = Event.query.get(item_id)
             except ValueError:
                 app.logger.error(f"Invalid item_id in session: {item_id_str}")
                 continue
 
             if event:
                 total_cost += event.price or 0
-                valid_items.append(event)  # Store event object directly
+                valid_items.append(event)
 
-        # Ensure valid items exist
         if not valid_items:
             flash("No valid items in your cart.", "danger")
             return redirect(url_for('checkout'))
 
-        # Save purchases (tickets) to the database
         for item in valid_items:
             new_ticket = Ticket(
                 user_id=current_user.id,
@@ -866,17 +826,14 @@ def complete_checkout():
 
         db.session.commit()
 
-        # Clear checkout session after successful processing
         session['checkout_items'] = []
 
-        # Fetch the latest ticket for the current user
         ticket = Ticket.query.filter_by(user_id=current_user.id).order_by(Ticket.id.desc()).first()
 
         if not ticket:
             flash("No recent orders found.", "danger")
             return redirect(url_for('home'))
 
-        # Fetch the item(s) associated with the latest ticket
         items = Event.query.filter(Event.id == ticket.item_id).all()
 
         return render_template('order_confirmation.html', ticket=ticket, items=items)

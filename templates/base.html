@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,59 +15,106 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* Ensures body takes full height of the viewport */
+            min-height: 100vh;
         }
 
         .container {
-            flex: 1; /* Ensures content area expands */
+            flex: 1;
         }
 
         footer {
             text-align: center;
             background-color: #f8f9fa;
             padding: 10px;
-            margin-top: auto; /* Pushes footer to the bottom */
-            display: block; /* Ensures footer only appears at the bottom */
+            margin-top: auto;
         }
 
         footer a {
             text-decoration: none;
             color: inherit;
         }
+
+        /* Navigation Bar Styling */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #ffffff; /* Light mode background */
+            color: #333; /* Default text color */
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease-in-out;
+        }
+
+        /* Navbar links */
+        nav a {
+            padding: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            color: #333; /* Default text color */
+            transition: color 0.3s ease-in-out;
+        }
+
+        nav a:hover {
+            color: #007bff;
+        }
+
+        /* Adjust text color when dark mode is detected */
+        @media (prefers-color-scheme: dark) {
+            nav {
+                background-color: #1c1c1c; /* Dark mode background */
+                color: #f8f9fa;
+            }
+
+            nav a {
+                color: #f8f9fa;
+            }
+
+            nav a:hover {
+                color: #17a2b8;
+            }
+
+            footer {
+                background-color: #1c1c1c;
+                color: #f8f9fa;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
-<nav style="position: fixed; top: 0; width: 100%; background-color: #f8f9fa; z-index: 1000; display: flex; align-items: center; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-    <ul style="list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 15px; justify-content: center;">
-        <li><a href="{{ url_for('home') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Home</a></li>
-        <li><a href="{{ url_for('news') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">News</a></li>
-        <li><a href="{{ url_for('events') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Events</a></li>
-        <li><a href="{{ url_for('exhibits') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Exhibits</a></li>
-        <li><a href="{{ url_for('services') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Services</a></li>
-        <li><a href="{{ url_for('feedback') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Feedback</a></li>
-        <li><a href="{{ url_for('contact') }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Contact Us</a></li>
-        <li><a href="{{ url_for('checkout', item_id=1) }}" style="padding: 10px; color: #333; text-decoration: none; font-weight: 500;">Checkout</a></li>
-    </ul>
+    <nav>
+        <ul style="list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 15px; justify-content: center;">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('news') }}">News</a></li>
+            <li><a href="{{ url_for('events') }}">Events</a></li>
+            <li><a href="{{ url_for('exhibits') }}">Exhibits</a></li>
+            <li><a href="{{ url_for('services') }}">Services</a></li>
+            <li><a href="{{ url_for('feedback') }}">Feedback</a></li>
+            <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('checkout', item_id=1) }}">Checkout</a></li>
+        </ul>
 
-    <ul style="list-style: none; margin: 0; padding: 0; display: flex; gap: 15px;">
-        {% if current_user.is_authenticated %}
-            {% if current_user.is_admin %}
-                <li>
-                    <a href="{{ url_for('admin_dashboard') }}" style="padding: 10px; color: #28a745; text-decoration: none; font-weight: 500;">
-                        Admin Dashboard
-                    </a>
-                </li>
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; gap: 15px;">
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}" style="color: #28a745;">
+                            Admin Dashboard
+                        </a>
+                    </li>
+                {% endif %}
+                <li><a href="{{ url_for('profile') }}" style="color: #007bff;">Profile</a></li>
+                <li><a href="{{ url_for('logout') }}" style="color: rgb(220, 53, 69);">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" style="color: rgb(220, 53, 69);">Login</a></li>
+                <li><a href="{{ url_for('register') }}" style="color: #17a2b8;">Register</a></li>
             {% endif %}
-            <li><a href="{{ url_for('profile') }}" style="padding: 10px; color: #007bff; text-decoration: none; font-weight: 500;">Profile</a></li>
-            <li><a href="{{ url_for('logout') }}" style="padding: 10px; color: rgb(220, 53, 69); text-decoration: none; font-weight: 500;">Logout</a></li>
-        {% else %}
-            <li><a href="{{ url_for('login') }}" style="padding: 10px; color: rgb(220, 53, 69); text-decoration: none; font-weight: 500;">Login</a></li>
-            <li><a href="{{ url_for('register') }}" style="padding: 10px; color: #17a2b8; text-decoration: none; font-weight: 500;">Register</a></li>
-        {% endif %}
-    </ul>
-</nav>
-
+        </ul>
+    </nav>
 
     <div class="container" style="margin-top: 80px;">
         {% block content %}
