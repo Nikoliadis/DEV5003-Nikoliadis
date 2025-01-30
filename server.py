@@ -408,8 +408,6 @@ def login():
 
     return render_template('login.html')
 
-from sqlalchemy.exc import IntegrityError  # Import IntegrityError
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -417,34 +415,29 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Check if the username already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash("Username already taken. Please choose another.", "danger")
             return redirect(url_for('register'))
 
-        # Check if the email already exists
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
             flash("An account with this email already exists.", "danger")
             return redirect(url_for('register'))
 
-        # Hash the password before storing it
         hashed_password = generate_password_hash(password)
 
-        # Create new user object
         new_user = User(username=username, email=email, password=hashed_password)
 
-        # Add the user to the session and commit to the database
         db.session.add(new_user)
         try:
             db.session.commit()
-            print("User added successfully!")  # Debugging message
+            print("User added successfully!")
             flash("Registration successful! You can now log in.", "success")
             return redirect(url_for('login'))
         except IntegrityError as e:
             db.session.rollback()
-            print(f"Error adding user to database: {e}")  # Debugging message
+            print(f"Error adding user to database: {e}") 
             flash("An error occurred. Please try again.", "danger")
             return redirect(url_for('register'))
 
@@ -550,7 +543,6 @@ def feedback():
         return redirect(url_for('feedback'))
 
     try:
-        # Query feedback from the database
         feedback_entries = Feedback.query.order_by(Feedback.created_at.desc()).all()
 
         return render_template('feedback.html', feedback=feedback_entries)
