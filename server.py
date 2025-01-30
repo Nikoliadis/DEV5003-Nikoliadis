@@ -8,6 +8,8 @@ import os
 from datetime import datetime
 
 
+
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -211,6 +213,9 @@ def add_event():
         if image:
             image_path = os.path.join(upload_folder, image.filename)
             image.save(image_path)
+
+            # 🔹 **Ensure forward slashes in the path**
+            image_path = image_path.replace("\\", "/")
         else:
             flash("Image upload failed. Please try again.", "danger")
             return redirect(url_for('add_event'))
@@ -221,7 +226,7 @@ def add_event():
             description=description,
             date=event_date,
             price=float(price) if price else None,
-            image_path=image_path,
+            image_path=image_path,  # 🔹 Now correctly formatted with `/`
         )
         db.session.add(new_event)
         db.session.commit()
@@ -329,28 +334,35 @@ def manage_purchases():
     show_archived = request.args.get('archived', 'false').lower() == 'true'
 
     # Fetch tickets based on archived status
-    tickets = Ticket.query.filter(
-        Ticket.fulfilled == (True if show_archived else False)
-    ).all()
+    tickets = Ticket.query.filter(Ticket.fulfilled == (True if show_archived else False)).all()
 
     # Add user and event details to the tickets
     tickets_with_details = []
     for ticket in tickets:
         user = User.query.get(ticket.user_id)
+        event = Event.query.get(ticket.item_id)  # Match by event_id
 
-        # Fetch the event details for the item
-        event = Event.query.get(ticket.item_id)
-
-        # If event exists, use its image and title; otherwise, use placeholders
         if event:
+            # Normalize title to match the image file naming convention
+            normalized_title = event.title.lower().replace(" ", "_") + ".jpg"
+            image_path = f"uploads/{normalized_title}"  # Ensure correct path
+
+            # **FORCE IT TO TAKE IMAGE BASED ON TITLE**
+            if event.image_path:
+                image_path = event.image_path  # Override if set in DB
+            elif os.path.exists(os.path.join(app.root_path, 'static', image_path)):
+                image_path = image_path  # Image exists, keep it
+            else:
+                image_path = None  # **REMOVE PLACEHOLDER—ENSURE ONLY REAL IMAGES**
+
             item = {
                 'title': event.title,
-                'image': event.image_path if event.image_path else 'https://via.placeholder.com/50',
+                'image': image_path  # Save the correct image path
             }
         else:
             item = {
                 'title': 'Unknown Item',
-                'image': 'https://via.placeholder.com/50',
+                'image': None  # No placeholder, only real images
             }
 
         tickets_with_details.append((ticket, user, item))
@@ -361,22 +373,24 @@ def manage_purchases():
 
         # Handle actions (fulfill, archive, unarchive)
         ticket = Ticket.query.get(ticket_id)
-        if action == 'mark_fulfilled':
-            ticket.fulfilled = True
-            db.session.commit()
-            flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
-        elif action == 'archive':
-            ticket.fulfilled = True  # Assuming fulfilled tickets are archived
-            db.session.commit()
-            flash(f"Ticket {ticket.id} archived successfully.", "success")
-        elif action == 'unarchive':
-            ticket.fulfilled = False
-            db.session.commit()
-            flash(f"Ticket {ticket.id} unarchived successfully.", "success")
+        if ticket:
+            if action == 'mark_fulfilled':
+                ticket.fulfilled = True
+                flash(f"Ticket {ticket.id} marked as fulfilled.", "success")
+            elif action == 'archive':
+                ticket.archived = True  
+                flash(f"Ticket {ticket.id} archived successfully.", "success")
+            elif action == 'unarchive':
+                ticket.archived = False
+                flash(f"Ticket {ticket.id} unarchived successfully.", "success")
 
+            db.session.commit()
         return redirect(url_for('manage_purchases', archived=show_archived))
 
     return render_template('manage_purchases.html', tickets=tickets_with_details, show_archived=show_archived)
+
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -34,9 +34,13 @@
             <tr>
                 <td>{{ ticket.id }}</td>
                 <td>{{ user.username }}</td>
-                <td>{{ item.title }}</td>
+                <td>{{ item.title if item else 'Unknown Item' }}</td>
                 <td>
-                    <img src="{{ item.image }}" alt="{{ item.title }}" width="50" height="50" class="rounded">
+                    {% if item.image %}
+                        <img src="{{ url_for('static', filename=item.image.replace('static/', '')) }}" 
+                             alt="{{ item.title if item else 'No Image' }}" 
+                             width="50" height="50" class="rounded">
+                    {% endif %}
                 </td>
                 <td>{{ ticket.quantity }}</td>
                 <td>${{ ticket.total_cost }}</td>
