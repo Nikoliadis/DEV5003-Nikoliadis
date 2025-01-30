@@ -111,7 +111,7 @@ class ContactMessage(db.Model):
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    username = db.Column(db.String(100), nullable=False)  # Ensure this column exists
+    username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     feedback = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -563,8 +563,8 @@ def submit_feedback():
 
         new_feedback = Feedback(
             user_id=current_user.id if current_user.is_authenticated else None,
-            username=name,  # Store name
-            email=email,  # Store email
+            username=name,
+            email=email,
             feedback=feedback_text,
             status="unread"
         )
@@ -578,6 +578,16 @@ def submit_feedback():
         app.logger.error(f"Error submitting feedback: {e}")
         flash("An error occurred. Please try again.", "danger")
         return redirect(url_for('feedback'))
+    
+@app.route('/delete_feedback/<int:feedback_id>', methods=['POST'])
+@login_required
+@admin_required 
+def delete_feedback(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+    db.session.delete(feedback)
+    db.session.commit()
+    flash("Feedback deleted successfully!", "success")
+    return redirect(url_for('view_feedback'))
 
 
 @app.route('/submit_contact_message', methods=['POST'])

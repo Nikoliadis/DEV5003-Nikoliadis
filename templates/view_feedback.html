@@ -7,7 +7,8 @@
     <table class="table table-hover shadow-sm rounded">
         <thead class="table-primary">
             <tr>
-                <th>User</th>
+                <th>Username</th>
+                <th>Email</th>
                 <th>Feedback</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -17,7 +18,8 @@
         <tbody>
             {% for feedback in feedbacks %}
             <tr>
-                <td>{{ feedback.user_id or "Anonymous" }}</td>
+                <td>{{ feedback.username or "Anonymous" }}</td>
+                <td>{{ feedback.email or "N/A" }}</td>
                 <td>{{ feedback.feedback }}</td>
                 <td>{{ feedback.created_at.strftime('%Y-%m-%d %H:%M:%S') if feedback.created_at else "N/A" }}</td>
                 <td>
@@ -35,6 +37,13 @@
                         <button type="submit" class="btn btn-warning btn-sm">Mark as Unread</button>
                     </form>
                     {% endif %}
+                    
+                    <!-- Delete Feedback Button -->
+                    <form method="POST" action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this feedback?');">
+                            Delete
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}
