@@ -9,7 +9,7 @@
             <div class="card border-0 shadow-lg h-100 rounded-lg">
                 <div class="card-body text-center">
                     <div class="icon-container mb-4">
-                        <i class="bi bi-newspaper text-primary display-4"></i>
+                        <img src="{{ url_for('static', filename='uploads/83342845-newspaper-flat-vector-icon-news-symbol-logo-illustration-business-concept-simple-flat-pictogram-on.png') }}" alt="News" class="icon-img">
                     </div>
                     <h5 class="card-title fw-bold">Add News</h5>
                     <p class="card-text text-muted">Publish and manage the latest updates effortlessly.</p>
@@ -22,7 +22,7 @@
             <div class="card border-0 shadow-lg h-100 rounded-lg">
                 <div class="card-body text-center">
                     <div class="icon-container mb-4">
-                        <i class="bi bi-calendar-event text-success display-4"></i>
+                        <img src="{{ url_for('static', filename='uploads/png-transparent-computer-icons-event-management-business-computer-software-business-text-people-innovation-thumbnail.png') }}" alt="Events" class="icon-img">
                     </div>
                     <h5 class="card-title fw-bold">Add Events</h5>
                     <p class="card-text text-muted">Create and schedule upcoming events seamlessly.</p>
@@ -35,7 +35,7 @@
             <div class="card border-0 shadow-lg h-100 rounded-lg">
                 <div class="card-body text-center">
                     <div class="icon-container mb-4">
-                        <i class="bi bi-envelope text-warning display-4"></i>
+                        <img src="{{ url_for('static', filename='uploads/images.png') }}" alt="Messages" class="icon-img">
                     </div>
                     <h5 class="card-title fw-bold">View Messages</h5>
                     <p class="card-text text-muted">Review and respond to user messages with ease.</p>
@@ -48,7 +48,7 @@
             <div class="card border-0 shadow-lg h-100 rounded-lg">
                 <div class="card-body text-center">
                     <div class="icon-container mb-4">
-                        <i class="bi bi-chat-dots text-danger display-4"></i>
+                        <img src="{{ url_for('static', filename='uploads/813419.png') }}" alt="Feedback" class="icon-img">
                     </div>
                     <h5 class="card-title fw-bold">Moderate Feedback</h5>
                     <p class="card-text text-muted">Manage feedback to enhance user engagement.</p>
@@ -57,18 +57,18 @@
             </div>
         </div>
         <!-- Manage Purchases -->
-<div class="col-md-6 col-lg-3">
-    <div class="card border-0 shadow-lg h-100 rounded-lg">
-        <div class="card-body text-center">
-            <div class="icon-container mb-4">
-                <i class="bi bi-cart-check text-info display-4"></i>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-lg h-100 rounded-lg">
+                <div class="card-body text-center">
+                    <div class="icon-container mb-4">
+                        <img src="{{ url_for('static', filename='uploads/png-transparent-computer-icons-icon-design-order-icon-cdr-angle-text-thumbnail.png') }}" alt="Purchases" class="icon-img">
+                    </div>
+                    <h5 class="card-title fw-bold">Manage Purchases</h5>
+                    <p class="card-text text-muted">View and mark purchases as fulfilled.</p>
+                    <a href="{{ url_for('manage_purchases') }}" class="btn btn-outline-info mt-3 px-4">Manage Purchases</a>
+                </div>
             </div>
-            <h5 class="card-title fw-bold">Manage Purchases</h5>
-            <p class="card-text text-muted">View and mark purchases as fulfilled.</p>
-            <a href="{{ url_for('manage_purchases') }}" class="btn btn-outline-info mt-3 px-4">Manage Purchases</a>
         </div>
-    </div>
-</div>
     </div>
 </div>
 
@@ -83,6 +83,14 @@
         border-radius: 50%;
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .icon-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
     }
 
     .card {
