@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from functools import wraps
+from sqlalchemy.exc import IntegrityError
 import os
 from datetime import datetime
 
@@ -407,6 +408,8 @@ def login():
 
     return render_template('login.html')
 
+from sqlalchemy.exc import IntegrityError  # Import IntegrityError
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -414,30 +417,38 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        existing_user = User.query.filter_by(email=email).first()
+        # Check if the username already exists
+        existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash('An account with this email already exists.', 'danger')
+            flash("Username already taken. Please choose another.", "danger")
             return redirect(url_for('register'))
 
-        new_user = User(username=username, email=email)
-        new_user.set_password(password)
+        # Check if the email already exists
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            flash("An account with this email already exists.", "danger")
+            return redirect(url_for('register'))
 
-        db.session.add(new_user)
-        db.session.commit()
-        
+        # Hash the password before storing it
+        hashed_password = generate_password_hash(password)
+
+        # Create new user object
+        new_user = User(username=username, email=email, password=hashed_password)
+
+        # Add the user to the session and commit to the database
         db.session.add(new_user)
         try:
             db.session.commit()
-            print("User added successfully!")
-        except Exception as e:
-            print(f"Error adding user to database: {e}")
+            print("User added successfully!")  # Debugging message
+            flash("Registration successful! You can now log in.", "success")
+            return redirect(url_for('login'))
+        except IntegrityError as e:
             db.session.rollback()
+            print(f"Error adding user to database: {e}")  # Debugging message
             flash("An error occurred. Please try again.", "danger")
             return redirect(url_for('register'))
 
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html')
+    return render_template('register.html') 
 
 
 @app.route('/profile')
