@@ -1,87 +1,161 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-5">
     <!-- Header Section with Toggle Button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-{{ 'secondary' if show_archived else 'primary' }}">
-            {{ 'Archived Orders' if show_archived else 'Manage Purchases' }}
+            {{ '📦 Archived Orders' if show_archived else '🛒 Manage Purchases' }}
         </h2>
-        <!-- Toggle Archived/Active Orders -->
         <a href="{{ url_for('manage_purchases', archived=not show_archived) }}" 
-           class="btn btn-outline-{{ 'primary' if show_archived else 'secondary' }} px-4">
-            {{ 'View Active Orders' if show_archived else 'View Archived Orders' }}
+           class="btn toggle-btn shadow-sm">
+            {{ '🔄 View Active Orders' if show_archived else '📂 View Archived Orders' }}
         </a>
     </div>
 
-    <h1 class="text-center text-info fw-bold mb-5">Manage Purchases</h1>
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Item Name</th>
-                <th>Item Image</th>
-                <th>Quantity</th>
-                <th>Total Cost</th>
-                <th>Payment Method</th>
-                <th>Fulfilled</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ticket, user, item in tickets %}
-            <tr>
-                <td>{{ ticket.id }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ item.title if item else 'Unknown Item' }}</td>
-                <td>
-                    {% if item.image %}
-                        <img src="{{ url_for('static', filename=item.image.replace('static/', '')) }}" 
-                             alt="{{ item.title if item else 'No Image' }}" 
-                             width="50" height="50" class="rounded">
-                    {% endif %}
-                </td>
-                <td>{{ ticket.quantity }}</td>
-                <td>${{ ticket.total_cost }}</td>
-                <td>{{ ticket.payment_method }}</td>
-                <td>
-                    {% if ticket.fulfilled %}
-                    <span class="badge bg-success">Fulfilled</span>
-                    {% else %}
-                    <span class="badge bg-warning">Pending</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if not show_archived %}
-                        <!-- Fulfill and Archive for Active Orders -->
-                        {% if not ticket.fulfilled %}
-                        <form method="POST" style="display: inline;">
-                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                            <input type="hidden" name="action" value="mark_fulfilled">
-                            <button type="submit" class="btn btn-sm btn-success">Mark as Fulfilled</button>
-                        </form>
+    <div class="table-responsive glass-effect p-4 rounded-4">
+        <h2 class="text-center text-gradient fw-bold mb-4">Manage Purchases</h2>
+        <table class="table table-hover align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Item Name</th>
+                    <th>Item Image</th>
+                    <th>Quantity</th>
+                    <th>Total Cost</th>
+                    <th>Payment Method</th>
+                    <th>Fulfilled</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket, user, item in tickets %}
+                <tr class="hover-effect">
+                    <td class="fw-bold">{{ ticket.id }}</td>
+                    <td class="fw-semibold">{{ user.username }}</td>
+                    <td>{{ item.title if item else 'Unknown Item' }}</td>
+                    <td>
+                        {% if item.image %}
+                            <img src="{{ url_for('static', filename=item.image.replace('static/', '')) }}" 
+                                 alt="{{ item.title if item else 'No Image' }}" class="rounded item-img">
                         {% endif %}
-                        <form method="POST" style="display: inline;">
-                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                            <input type="hidden" name="action" value="archive">
-                            <button type="submit" class="btn btn-sm btn-secondary">Archive</button>
-                        </form>
-                    {% else %}
-                        <!-- Unarchive for Archived Orders -->
-                        <form method="POST" style="display: inline;">
-                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                            <input type="hidden" name="action" value="unarchive">
-                            <button type="submit" class="btn btn-sm btn-warning">Unarchive</button>
-                        </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>        
-    </table>
-    {% if not tickets %}
-    <p class="text-center">No purchases available.</p>
-    {% endif %}
+                    </td>
+                    <td class="fw-bold">{{ ticket.quantity }}</td>
+                    <td class="fw-bold text-success">${{ ticket.total_cost }}</td>
+                    <td class="text-muted">{{ ticket.payment_method }}</td>
+                    <td>
+                        {% if ticket.fulfilled %}
+                            <span class="badge fulfilled-badge">✔ Fulfilled</span>
+                        {% else %}
+                            <span class="badge pending-badge">⌛ Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not show_archived %}
+                            {% if not ticket.fulfilled %}
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                <input type="hidden" name="action" value="mark_fulfilled">
+                                <button type="submit" class="btn action-btn btn-success">✔ Mark Fulfilled</button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                <input type="hidden" name="action" value="archive">
+                                <button type="submit" class="btn action-btn btn-secondary">📂 Archive</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                <input type="hidden" name="action" value="unarchive">
+                                <button type="submit" class="btn action-btn btn-warning">📤 Unarchive</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>        
+        </table>
+        {% if not tickets %}
+        <p class="text-center text-muted fw-semibold">No purchases available.</p>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+    /* Glassmorphism Effect */
+    .glass-effect {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+    }
+
+    /* Gradient Text */
+    .text-gradient {
+        background: linear-gradient(to right, #007bff, #6610f2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Hover Effects */
+    .hover-effect:hover {
+        background: rgba(0, 0, 0, 0.05);
+        transition: 0.3s;
+    }
+
+    /* Button Styling */
+    .toggle-btn {
+        padding: 10px 20px;
+        font-weight: bold;
+        border-radius: 50px;
+        transition: 0.3s ease-in-out;
+    }
+    
+    .toggle-btn:hover {
+        box-shadow: 0px 0px 15px rgba(0, 123, 255, 0.5);
+    }
+
+    /* Fulfilled & Pending Badges */
+    .fulfilled-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+
+    .pending-badge {
+        background-color: #ffc107;
+        color: black;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+
+    /* Image Styling */
+    .item-img {
+        width: 60px;
+        height: auto;
+        border-radius: 10px;
+        transition: 0.3s ease-in-out;
+    }
+
+    .item-img:hover {
+        transform: scale(1.1);
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Action Buttons */
+    .action-btn {
+        border-radius: 20px;
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+
 {% endblock %}
