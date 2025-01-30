@@ -111,6 +111,8 @@ class ContactMessage(db.Model):
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    username = db.Column(db.String(100), nullable=False)  # Ensure this column exists
+    email = db.Column(db.String(120), nullable=False)
     feedback = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     status = db.Column(db.String(20), default='unread')
@@ -527,6 +529,8 @@ def feedback():
         print(f"Received Feedback: {name}, {email}, {feedback_text}")
 
         new_feedback = Feedback(user_id=current_user.id if current_user.is_authenticated else None,
+                                name=name,
+                                email=email,
                                 feedback=feedback_text)
         db.session.add(new_feedback)
         db.session.commit()
@@ -534,17 +538,47 @@ def feedback():
         flash("Thank you for your feedback!", "success")
         return redirect(url_for('feedback'))
 
-    return render_template('feedback.html')
+    try:
+        # Query feedback from the database
+        feedback_entries = Feedback.query.order_by(Feedback.created_at.desc()).all()
+
+        return render_template('feedback.html', feedback=feedback_entries)
+
+    except Exception as e:
+        app.logger.error(f"Error fetching feedback: {e}")
+        flash("An error occurred while loading feedback.", "danger")
+        return redirect(url_for('home'))
 
 
 @app.route('/submit_feedback', methods=['POST'])
 def submit_feedback():
-    feedback_text = request.form['feedback']
-    new_feedback = Feedback(user_id=current_user.id if current_user.is_authenticated else None, feedback=feedback_text)
-    db.session.add(new_feedback)
-    db.session.commit()
-    flash('Thank you for your feedback!', 'success')
-    return redirect(url_for('feedback'))
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        feedback_text = request.form.get('feedback')
+
+        if not name or not email or not feedback_text:
+            flash("All fields are required!", "danger")
+            return redirect(url_for('feedback'))
+
+        new_feedback = Feedback(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            username=name,  # Store name
+            email=email,  # Store email
+            feedback=feedback_text,
+            status="unread"
+        )
+        db.session.add(new_feedback)
+        db.session.commit()
+
+        flash("Thank you for your feedback!", "success")
+        return redirect(url_for('feedback'))
+    
+    except Exception as e:
+        app.logger.error(f"Error submitting feedback: {e}")
+        flash("An error occurred. Please try again.", "danger")
+        return redirect(url_for('feedback'))
+
 
 @app.route('/submit_contact_message', methods=['POST'])
 def submit_contact_message():

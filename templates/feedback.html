@@ -1,21 +1,142 @@
 {% extends "base.html" %}
 
 {% block title %}Feedback{% endblock %}
-{% block header %}We Value Your Feedback{% endblock %}
+
 {% block content %}
-    <div class="feedback">
-        <h2>We Value Your Feedback</h2>
-        <form action="{{ url_for('submit_feedback') }}" method="POST">
-            <label for="name">Your Name:</label>
-            <input type="text" id="name" name="name" required>
+<div class="container mt-5">
+    <h2 class="text-center mb-4 title-style">
+        We Value Your Feedback
+    </h2>
 
-            <label for="email">Your Email:</label>
-            <input type="email" id="email" name="email" required>
+    <!-- Feedback Submission Form -->
+    <div class="feedback-form-container">
+        <div class="card feedback-form-card">
+            <div class="card-body">
+                <h4 class="card-title text-center">Submit Your Feedback</h4>
+                <form action="{{ url_for('submit_feedback') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Your Name:</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
+                    </div>
 
-            <label for="feedback">Your Feedback:</label>
-            <textarea id="feedback" name="feedback" rows="4" required></textarea>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Your Email:</label>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
+                    </div>
 
-            <button type="submit">Submit</button>
-        </form>
+                    <div class="mb-3">
+                        <label for="feedback" class="form-label">Your Feedback:</label>
+                        <textarea id="feedback" name="feedback" rows="4" class="form-control" placeholder="Write your feedback here..." required></textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary submit-feedback-btn">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
+    <!-- Display Existing Feedback -->
+    <div class="row mt-5">
+        {% for entry in feedback %}
+        <div class="col-md-6">
+            <div class="card feedback-card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-user-circle"></i> {{ entry.username }}
+                    </h5>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="fas fa-calendar-alt"></i> {{ entry.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </h6>
+                    <p class="card-text feedback-text">"{{ entry.feedback }}"</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-center text-muted mt-4">No feedback has been submitted yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    .title-style {
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    /* Feedback Form Card */
+    .feedback-form-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .feedback-form-card {
+        width: 50%;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .feedback-form-card:hover {
+        transform: scale(1.02);
+    }
+
+    .submit-feedback-btn {
+        font-size: 18px;
+        padding: 12px 30px;
+        font-weight: bold;
+        border-radius: 30px;
+        background: #007bff;
+        border: none;
+        transition: background 0.3s ease-in-out;
+    }
+
+    .submit-feedback-btn:hover {
+        background: #0056b3;
+        color: white;
+    }
+
+    /* Feedback Cards */
+    .feedback-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        color: #333;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .feedback-card:hover {
+        transform: scale(1.05);
+    }
+
+    .feedback-card .card-title {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .feedback-card .feedback-text {
+        font-size: 16px;
+        color: #555;
+        font-style: italic;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .feedback-form-card {
+            width: 90%;
+        }
+    }
+</style>
+
+<!-- Font Awesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
 {% endblock %}
