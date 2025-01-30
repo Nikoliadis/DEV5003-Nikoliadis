@@ -814,7 +814,7 @@ def contact():
     return render_template('contact.html')
 
 
-@app.route('/complete_checkout', methods=['POST'])
+@app.route('/complete_checkout', methods=['POST', 'GET'])
 @login_required
 def complete_checkout():
     try:
@@ -825,48 +825,27 @@ def complete_checkout():
         postal_code = request.form.get('postal_code', '').strip()
         city = request.form.get('city', '').strip()
 
-        # Load all items (hardcoded + database events)
-        items_data = {
-            1: {'title': 'Ancient Vase', 'price': 25},
-            2: {'title': 'Renaissance Painting', 'price': 30},
-            3: {'title': 'Ancient Sculpture', 'price': 20},
-            4: {'title': 'Impressionist Artwork', 'price': 15},
-        }
-
-        # Include events stored in the database
-        events_from_db = Event.query.all()
-        for event in events_from_db:
-            items_data[event.id] = {
-                'title': event.title,
-                'price': event.price or 0,
-            }
-
-        # Retrieve checkout items from the session
+        # Retrieve checkout items from session
         checkout_items = session.get('checkout_items', [])
         if not checkout_items or not isinstance(checkout_items, list):
             flash("Your cart is empty.", "danger")
             return redirect(url_for('checkout'))
 
-        # Process the items in the cart
         total_cost = 0
         valid_items = []
+
+        # Fetch items from database instead of hardcoding
         for item_id_str in checkout_items:
             try:
-                item_id = int(item_id_str)  # Ensure item_id is an integer
+                item_id = int(item_id_str)
+                event = Event.query.get(item_id)  # Fetch event directly from database
             except ValueError:
                 app.logger.error(f"Invalid item_id in session: {item_id_str}")
                 continue
 
-            # Check if the item exists in items_data
-            if item_id in items_data:
-                item = items_data[item_id]
-                total_cost += item['price']
-                valid_items.append({
-                    'item_id': item_id,
-                    'price': item['price'],
-                })
-            else:
-                app.logger.warning(f"Item ID {item_id} not found in items_data.")
+            if event:
+                total_cost += event.price or 0
+                valid_items.append(event)  # Store event object directly
 
         # Ensure valid items exist
         if not valid_items:
@@ -877,11 +856,11 @@ def complete_checkout():
         for item in valid_items:
             new_ticket = Ticket(
                 user_id=current_user.id,
-                item_id=item['item_id'],
-                quantity=1,  # Assuming each item is added as 1 quantity in this example
+                item_id=item.id,
+                quantity=1,
                 payment_method=payment_method,
                 address=f"{address_line_1}, {address_line_2}, {postal_code}, {city}".strip(', '),
-                total_cost=item['price'],
+                total_cost=item.price,
             )
             db.session.add(new_ticket)
 
@@ -890,16 +869,23 @@ def complete_checkout():
         # Clear checkout session after successful processing
         session['checkout_items'] = []
 
-        # Prepare ticket details for display
-        ticket_summary = {
-            'payment_method': payment_method,
-            'address': f"{address_line_1}, {address_line_2}, {postal_code}, {city}".strip(', '),
-            'total_cost': total_cost,
-            'quantity': len(valid_items),
-        }
+        # Fetch the latest ticket for the current user
+        ticket = Ticket.query.filter_by(user_id=current_user.id).order_by(Ticket.id.desc()).first()
 
-        # Render the Order Confirmation page
-        return render_template('order_confirmation.html', ticket=ticket_summary, items=valid_items)
+        if not ticket:
+            flash("No recent orders found.", "danger")
+            return redirect(url_for('home'))
+
+        # Fetch the item(s) associated with the latest ticket
+        items = Event.query.filter(Event.id == ticket.item_id).all()
+
+        return render_template('order_confirmation.html', ticket=ticket, items=items)
+
+    except Exception as e:
+        app.logger.error(f"Error completing checkout: {e}")
+        flash("An error occurred while processing your order. Please try again.", "danger")
+        return redirect(url_for('checkout'))
+
 
     except Exception as e:
         app.logger.error(f"Error completing checkout: {e}")

@@ -12,7 +12,11 @@
                 <h4 class="text-primary">Order Details</h4>
                 <ul class="order-list">
                     {% for item in items %}
-                        <li><strong>Item:</strong> {{ item.title }}</li>
+                    <ul class="order-list">
+                        {% for item in items %}
+                            <li><strong>Item:</strong> {{ item.title if item.title else "Unknown Item" }}</li>
+                        {% endfor %}
+                    </ul>                    
                     {% endfor %}
                 </ul>
                 <p><strong>Quantity:</strong> {{ ticket.quantity }}</p>
