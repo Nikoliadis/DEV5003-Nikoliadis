@@ -33,6 +33,7 @@
         <thead>
             <tr>
                 <th>Title</th>
+                <th>Event Image</th>
                 <th>Date</th>
                 <th>Price (EUR)</th>
                 <th>Actions</th>
@@ -42,6 +43,14 @@
             {% for event in events %}
             <tr>
                 <td>{{ event.title }}</td>
+                <td>
+                    {% if event.image_path %}
+                        <img src="{{ url_for('static', filename=event.image_path.replace('static/', '')) }}" 
+                             alt="{{ event.title }}" width="50" height="50" class="rounded">
+                    {% else %}
+                        <span>No Image</span>
+                    {% endif %}
+                </td>
                 <td>{{ event.date }}</td>
                 <td>{{ event.price }}</td>
                 <td>
