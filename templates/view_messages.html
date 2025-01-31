@@ -5,7 +5,7 @@
         <h2 class="fw-bold text-{{ 'secondary' if show_archived else 'primary' }}">
             {{ 'Archived Messages' if show_archived else 'Contact Messages' }}
         </h2>
-        <!-- Button to Toggle Archived/Unarchived Messages -->
+        <!-- Archived/Unarchived Messages -->
         <a href="{{ url_for('view_messages', archived=not show_archived) }}" 
            class="btn btn-outline-{{ 'primary' if show_archived else 'secondary' }} px-4">
             {{ 'View Active Messages' if show_archived else 'View Archived Messages' }}

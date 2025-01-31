@@ -38,7 +38,6 @@
                     </form>
                     {% endif %}
                     
-                    <!-- Delete Feedback Button -->
                     <form method="POST" action="{{ url_for('delete_feedback', feedback_id=feedback.id) }}" style="display: inline;">
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this feedback?');">
                             Delete
